@@ -1,0 +1,248 @@
+[1.3.6.1.4.1.37476.3.1.5.2]
+
+-- Standard OID Illegality Rule Definition File
+-- by Daniel Marschall and Olivier Dubuisson
+-- Revision: 8 April 2019
+-- This file contains all oid-info.com rules as of 2018_09_18_illegal_oid_table.csv
+
+-- SYNTAX:
+-- -- comment    : comments are also allowed after a rule definition
+-- 2.999.(11-).0 : the arc values 11 and below are illegal
+-- 2.999.(11+).0 : the arc values 11 and above are illegal
+-- 2.999.(1-5).0 : the arc values 1 to 5 are illegal
+-- 2.999.(!3).0  : only arc 3 is valid, all others are invalid (added in version 2)
+-- 2.999.*.0     : * is equal to (0+)
+
+
+-- TODO: Add more constraints according to http://www.iana.org/assignments/smi-numbers/smi-numbers.xml
+-- IANA REGISTRIES
+-- 1.3.6.1			http://www.iana.org/assignments/smi-numbers/smi-numbers.xml
+-- 1.3.6.1.1			http://www.iana.org/assignments/ldap-parameters/ldap-parameters-1.csv
+-- 1.3.6.1.2			http://www.iana.org/assignments/smi-numbers/smi-numbers-2.csv
+-- 1.3.6.1.2.1			http://www.iana.org/assignments/smi-numbers/smi-numbers-3.csv
+-- 1.3.6.1.2.1.2.2.1.3		http://www.iana.org/assignments/smi-numbers/smi-numbers-5.csv
+-- 1.3.6.1.2.1.2.2.1.3.131	http://www.iana.org/assignments/smi-numbers/smi-numbers-6.csv
+-- 1.3.6.1.2.1.10		http://www.iana.org/assignments/smi-numbers/smi-numbers-7.csv
+-- 1.3.6.1.2.1.10.23		http://www.iana.org/assignments/smi-numbers/smi-numbers-8.csv
+-- 1.3.6.1.2.1.10.166		http://www.iana.org/assignments/smi-numbers/smi-numbers-9.csv
+-- 1.3.6.1.2.1.16		http://www.iana.org/assignments/smi-numbers/smi-numbers-10.csv
+-- 1.3.6.1.2.1.16.20		http://www.iana.org/assignments/smi-numbers/smi-numbers-11.csv
+-- 1.3.6.1.2.1.27		http://www.iana.org/assignments/smi-numbers/smi-numbers-13.csv
+-- 1.3.6.1.2.1.27.4		(Registry is empty.)
+-- 1.3.6.1.2.1.27.5		(Registry is empty.)
+-- 1.3.6.1.2.1.28		??????????????????????????????????
+-- 1.3.6.1.2.1.28.2.1.24	http://www.iana.org/assignments/smi-numbers/smi-numbers-17.csv
+-- 1.3.6.1.2.1.34		http://www.iana.org/assignments/smi-numbers/smi-numbers-18.csv
+-- 1.3.6.1.2.1.153.4		(Registry is empty.)
+-- 1.3.6.1.2.1.194.1.1		http://www.iana.org/assignments/smi-numbers/smi-numbers-20.csv
+-- 1.3.6.1.2.2			http://www.iana.org/assignments/smi-numbers/smi-numbers-21.csv
+-- 1.3.6.1.3			http://www.iana.org/assignments/smi-numbers/smi-numbers-22.csv
+-- 1.3.6.1.3.116		http://www.iana.org/assignments/smi-numbers/smi-numbers-23.csv
+-- 1.3.6.1.4			http://www.iana.org/assignments/smi-numbers/smi-numbers-24.csv
+-- 1.3.6.1.4.1			http://www.iana.org/assignments/enterprise-numbers
+-- 1.3.6.1.5			http://www.iana.org/assignments/smi-numbers/smi-numbers-26.csv
+-- 1.3.6.1.5.3			http://www.iana.org/assignments/smi-numbers/smi-numbers-27.csv
+-- 1.3.6.1.5.4			http://www.iana.org/assignments/smi-numbers/smi-numbers-28.csv
+-- 1.3.6.1.5.5			http://www.iana.org/assignments/smi-numbers/smi-numbers-29.csv
+-- 1.3.6.1.5.5.1		http://www.iana.org/assignments/smi-numbers/smi-numbers-30.csv
+-- 1.3.6.1.5.5.4		http://www.iana.org/assignments/smi-numbers/smi-numbers-31.csv
+-- 1.3.6.1.5.5.8		http://www.iana.org/assignments/smi-numbers/smi-numbers-32.csv
+-- 1.3.6.1.5.5.8.1		http://www.iana.org/assignments/smi-numbers/smi-numbers-33.csv
+-- 1.3.6.1.5.5.8.2		http://www.iana.org/assignments/smi-numbers/smi-numbers-34.csv
+-- 1.3.6.1.5.5.8.3		http://www.iana.org/assignments/smi-numbers/smi-numbers-35.csv
+-- 1.3.6.1.5.5.10		http://www.iana.org/assignments/smi-numbers/smi-numbers-36.csv
+-- 1.3.6.1.5.5.11		http://www.iana.org/assignments/smi-numbers/ltans.csv
+-- 1.3.6.1.5.5.11.0		http://www.iana.org/assignments/smi-numbers/ltans-module-identifiers.csv
+-- 1.3.6.1.5.5.11.1		http://www.iana.org/assignments/smi-numbers/ltans-cms-content-types.csv
+-- 1.3.6.1.5.5.11.2		http://www.iana.org/assignments/smi-numbers/ltans-ers-encryption-methods.csv
+-- 1.3.6.1.5.5.12		http://www.iana.org/assignments/smi-numbers/smi-numbers-37.csv
+-- 1.3.6.1.5.5.12.0		http://www.iana.org/assignments/smi-numbers/smi-numbers-38.csv
+-- 1.3.6.1.5.5.12.1		http://www.iana.org/assignments/smi-numbers/smi-numbers-39.csv
+-- 1.3.6.1.5.5.12.2		http://www.iana.org/assignments/smi-numbers/smi-numbers-40.csv
+-- 1.3.6.1.5.5.12.3		http://www.iana.org/assignments/smi-numbers/smi-numbers-41.csv
+-- 1.3.6.1.5.5.12.4		http://www.iana.org/assignments/smi-numbers/smi-numbers-42.csv
+-- 1.3.6.1.5.5.12.5		http://www.iana.org/assignments/smi-numbers/smi-numbers-43.csv
+-- 1.3.6.1.5.5.12.6		http://www.iana.org/assignments/smi-numbers/smi-numbers-44.csv
+-- 1.3.6.1.5.5.12.7		http://www.iana.org/assignments/smi-numbers/smi-numbers-45.csv
+-- 1.3.6.1.5.5.13		http://www.iana.org/assignments/smi-numbers/smi-numbers-46.csv
+-- 1.3.6.1.5.5.15		http://www.iana.org/assignments/smi-numbers/smi-numbers-47.csv
+-- 1.3.6.1.5.5.15.1		http://www.iana.org/assignments/smi-numbers/smi-numbers-48.csv
+-- 1.3.6.1.5.5.15.2		http://www.iana.org/assignments/smi-numbers/smi-numbers-49.csv
+-- 1.3.6.1.5.6			http://www.iana.org/assignments/smi-numbers/smi-numbers-50.csv
+-- 1.3.6.1.5.7			http://www.iana.org/assignments/smi-numbers/smi-numbers-51.csv
+-- 1.3.6.1.5.7.1		http://www.iana.org/assignments/smi-numbers/smi-numbers-52.csv
+-- 1.3.6.1.5.7.2		http://www.iana.org/assignments/smi-numbers/smi-numbers-53.csv
+-- 1.3.6.1.5.7.3		http://www.iana.org/assignments/smi-numbers/smi-numbers-54.csv
+-- 1.3.6.1.5.7.4		http://www.iana.org/assignments/smi-numbers/smi-numbers-55.csv
+-- 1.3.6.1.5.7.5		http://www.iana.org/assignments/smi-numbers/smi-numbers-56.csv
+-- 1.3.6.1.5.7.6		http://www.iana.org/assignments/smi-numbers/smi-numbers-57.csv
+-- 1.3.6.1.5.7.7		http://www.iana.org/assignments/smi-numbers/smi-numbers-58.csv
+-- 1.3.6.1.6			http://www.iana.org/assignments/smi-numbers/smi-numbers-59.csv
+-- 1.3.6.1.6.1			http://www.iana.org/assignments/smi-numbers/smi-numbers-60.csv
+-- 1.3.6.1.6.2			??? Not listed in http://www.iana.org/assignments/smi-numbers/smi-numbers.xml
+-- 1.3.6.1.6.3			http://www.iana.org/assignments/smi-numbers/smi-numbers-61.csv
+-- 1.3.6.1.7			http://www.iana.org/assignments/smi-numbers/smi-numbers-64.csv
+-- 1.3.6.1.7.1			http://www.iana.org/assignments/smi-numbers/smi-numbers-65.csv
+-- 1.3.6.1.7.1.1		http://www.iana.org/assignments/smi-numbers/smi-numbers-66.csv
+-- 1.3.6.1.7.1.2		http://www.iana.org/assignments/smi-numbers/smi-numbers-67.csv
+-- 1.3.6.1.7.1.2.1		http://www.iana.org/assignments/smi-numbers/smi-numbers-68.csv
+-- 1.3.6.1.7.1.2.2		http://www.iana.org/assignments/smi-numbers/smi-numbers-69.csv
+-- 1.3.6.1.7.1.3		http://www.iana.org/assignments/smi-numbers/smi-numbers-70.csv
+-- 1.3.6.1.8			http://www.iana.org/assignments/media-feature-tags/media-feature-tags.xhtml
+-- 1.3.6.1.8.1			http://www.iana.org/assignments/media-feature-tags/media-feature-tags-1.csv
+-- 1.3.6.1.8.2			(No registrations at this time.)
+-- 1.3.6.1.8.3			http://www.iana.org/assignments/media-feature-tags/media-feature-tags-3.csv
+-- 1.3.6.1.8.4			http://www.iana.org/assignments/media-feature-tags/media-feature-tags-4.csv
+
+
+-- CATEGORY: Currently "not expected" OID arc values - once the RAs are reaching a specific arc value, these limits have to be increased
+0.(10+)                      -- itu, currently max 9
+1.(4+)                       -- iso, currently max 3
+1.3.6.(2+)                   -- dod
+1.3.6.1.(9+)                 -- internet
+1.3.6.1.2.(3+)               -- mgmt
+1.3.6.1.2.1.(301+)           -- mib-2 (Sep 2015: max 233)
+1.3.6.1.2.1.0.*              -- reserved
+1.3.6.1.2.1.1.(10+)          -- system (Sep 2015: max 9)
+1.3.6.1.4.(2+)               -- private (Sep 2015: max 1)
+2.(1000+)                    -- joint-iso-itu-t (Sep 2015: max 51 & 999)
+2.1.(124+)                   -- asn1 (Sep 2015: max 10 & 123)
+2.5.29.(71+)                 -- OIDs underneath {joint-iso-itu-t(2) ds(5) certificateExtension(29)} have a number less or equal to 70 in the current edition of Rec. ITU-T X.509 | ISO/IEC 9594-8
+2.16.840.1.113883.3.(10000+) -- externalUseRoots (Dec 2017: upper bound set to 10,000)
+1.3.6.1.3.(147+)             -- The highest experiment number is currently (Sep 2015): 126 , see http://www.iana.org/assignments/smi-numbers/smi-numbers.xml
+                             -- Various vendors claim to have arcs higher than the current number:  hippisw(147), ipsecSaMonModule(500), ipsecMIB(503), host(999), ppvpnTcMIB(1111), nhrpMIB(9999)
+1.3.6.1.5.(8+)               -- OIDs underneath 1.3.6.1.5 are not expected (at this point in time) to have a number greater than 7 ( http://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml#smi-numbers-26 )
+1.3.6.1.5.2.(6+)             -- At this point in time (Apr 2019) OIDs allocated by Kerberos version 2 underneath 1.3.6.1.5.2 are not expected to have a number greater than 5.
+                             -- see https://web.mit.edu/kerberos/krb5-oids/krb5-oids.asn
+1.3.6.1.5.7.1.(5+)           -- OIDs underneath 1.3.6.1.5.7.1 are not expected (at this point in time) to have a number greater than 4 ( https://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml#smi-numbers-52 )
+
+-- CATEGORY: Reserved
+1.1.3.*        -- Reserved for ISO/IEC 9834-3
+
+-- CATEGORY: Unassigned country codes
+1.2.1
+1.2.2
+1.2.6          -- was 1.3.6 meant?
+1.2.10
+1.2.16
+1.2.39
+1.2.110        -- According to the secretary of the ISO 3166 maintenance Agency (16 June 2003), country code 110 is un-assigned in ISO 3166-1; it does not represent any country
+1.2.158        -- This OID is not used since Taiwan is not an ISO National Body. All OIDs for Taiwan are registered under {joint-iso-itu-t(2) country(16) taiwan(158)}
+1.2.886        -- Country code 886 has been abused in 1998 because someone at Taiwan Chungwa Telecom originally believed 886 was an ITU assignment for Taiwan Numeric Code, but the 886 country code ( http://unstats.un.org/unsd/methods/m49/m49chang.htm#ftni ) was assigned to Yemen before that country merged with Democratic Yemen. Taiwan has NO RIGHT to use this arc. The Statistic Division of the United Nations may assign this arc to any country without any notice, so keep using this arc will be a big trouble. Note that the use of this illegal OID should be avoided in any new document and/or standard. All existing OID should be transfered to the 2.16.158 arc which is assigned to Taiwan. Also read Conflicts over Taiwan OIDs: http://www.alvestrand.no/objectid/taiwan.html
+1.2.3166
+1.2.57958
+
+-- CATEGORY: Example OIDS
+2.999.*                   -- OID 2.999 is only used for creating (informal) examples, hence child OIDs do not need to be described in the OID repository, as the same child OID can be reused by someone else for a different purpose
+1.3.6.1.4.1.37476.9999.*  -- ViaThinkSoft example OID (obsolete in favor of 2.999)
+
+-- CATEGORY: Illegal usage (hijacking / collission)
+1.3.6.1.2.1.1.7.*         -- Illegal redefintion of 1.3.6.1.2.1.1.7 (defined in IETF RFC 1213 without child nodes) by agilent-wanstats.mib as "sysServices"
+2.16.158.3                -- Institute for Information Industry claims to have this OID but the Registration Authority for the superior OID confirmed that this OID was never assigned to III
+2.16.158.5                -- Taiwan-CA.com, Inc. (TaiCA) claims to have this OID but the Registration Authority for the superior OID confirmed that this OID was never assigned to them
+2.16.158.6                -- CHIEF Telecom Inc. (www.chief.com.tw) claims to use this OID but it is illegal because Taiwan non-government organizations are registered under {joint-iso-itu-t(2) country(16) tw(158) organization(1)}
+2.16.158.7                -- Organizations have OIDs under {joint-iso-itu-t(2) country(16) tw(158) organization(1)}
+1.3.6.1.4.1.(65665+)      -- There are illegal definitions of the arcs 65665, 76561 and 123456 found on the internet.
+
+-- CATEGORY: Definitions
+2.27.(128+)   -- Child OIDs are limited to 127 so that the OID can encode in 2 octets.
+0.(40+)       -- According to Rec. ITU-T X.660 | ISO/IEC 9834-1, "the arcs beneath root arcs 0 and 1 are restricted to forty arcs numbered 0 to 39"
+1.(40+)       -- According to Rec. ITU-T X.660 | ISO/IEC 9834-1, "the arcs beneath root arcs 0 and 1 are restricted to forty arcs numbered 0 to 39"
+1.0.1         -- International Standard ISO 1:2002 is about "Geometrical Product Specifications (GPS) -- Standard reference temperature for geometrical product specification and verification", hence does not define OIDs
+1.0.16        -- International Standard ISO 16:1975 is about "Acoustics -- Standard tuning frequency (Standard musical pitch)", hence does not define OIDs
+
+-- CATEGORY: Cancelled, withdrawn and rejected OIDs
+1.0.29192.2.2.3                 -- This OID was allocated to the "Speck" family of block ciphers in ISO/IEC 29192-2 PDAM1 in 2017 but this proposed amendment has been cancelled
+1.3.6.1.4.1.37476.9000.36       -- Withdrawn FreeOID by ViaThinkSoft (spam), https://www.viathinksoft.de/freeoid/display_oid.php?oid=36
+2.16.840.1.113883.3.20          -- Rejected in the HL7 OID Registry
+2.16.840.1.113883.13.(223-225)  -- Entered in error in HL7 OID Registry
+2.16.840.1.113883.3.24.6.1      -- Entered in error in HL7 OID Registry; The correct OID is 2.16.840.1.113883.4.344
+2.16.840.1.113883.3.24.6.2      -- Entered in error in HL7 OID Registry; The correct OID is 2.16.840.1.113883.4.345
+2.16.840.1.113883.3.41          -- Rejected by HL7 because it is a duplicate of 2.16.840.1.113883.6.14
+2.16.840.1.113883.3.4831.3      -- rejected by HL7: http://www.hl7.org/oid/index.cfm?Comp_OID=2.16.840.1.113883.3.4831.3
+
+-- CATEGORY: Misdefined in specifications
+1.2.840.113549.1.9.16.0.999  -- According to IETF RFC Errata 3866 ( https://www.rfc-editor.org/errata_search.php?eid=3866 ), the correct number is 49 and not 999 as wrongly specified in IETF RFC 6210
+1.0.10118.3.0.61             -- The correct OID is {joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistAlgorithm(4) hashAlgs(2) 7} (the mistake was found when proofreading ISO/IEC 10118-3:2018 for publication, so it will be corrected in a technical corrigendum or amendment)
+1.0.10118.3.0.62             -- The correct OID is {joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistAlgorithm(4) hashAlgs(2) 8} (the mistake was found when proofreading ISO/IEC 10118-3:2018 for publication, so it will be corrected in a technical corrigendum or amendment)
+1.0.10118.3.0.63             -- The correct OID is {joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistAlgorithm(4) hashAlgs(2) 9} (the mistake was found when proofreading ISO/IEC 10118-3:2018 for publication, so it will be corrected in a technical corrigendum or amendment)
+1.0.10118.3.0.64             -- The correct OID is {joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistAlgorithm(4) hashAlgs(2) 10} (the mistake was found when proofreading ISO/IEC 10118-3:2018 for publication, so it will be corrected in a technical corrigendum or amendment)
+1.0.10118.3.0.66             -- The correct OID is {joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistAlgorithm(4) hashAlgs(2) 11} (the mistake was found when proofreading ISO/IEC 10118-3:2018 for publication, so it will be corrected in a technical corrigendum or amendment)
+1.0.10118.3.0.67             -- The correct OID is {joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistAlgorithm(4) hashAlgs(2) 12} (the mistake was found when proofreading ISO/IEC 10118-3:2018 for publication, so it will be corrected in a technical corrigendum or amendment)
+0.0.24.752                   -- There is a mistake in Rec. ITU-T X.792 (http://www.itu.int/ITU-T/formal-language/itu-t/x/x792/1999/AuditASN1Module.html) where number 752 is used instead of 792.
+
+-- CATEGORY: Not assigned by IANA (probably mistyped)
+1.3.6.1.5.5.7.3.0     -- OID 1.3.6.1.5.5.7.3.0 has not been assigned by IANA ( https://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml#smi-numbers-1.3.6.1.5.5.7.3 )
+1.3.6.1.5.5.1.4       -- Not allocated at https://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml#smi-numbers-30
+1.3.6.1.5.5.1.5       -- Not allocated at https://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml#smi-numbers-30
+1.3.6.1.5.5.1.6       -- Not allocated at https://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml#smi-numbers-30
+1.3.6.1.5.5.1.7       -- Not allocated at https://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml#smi-numbers-30
+1.3.6.1.5.5.1.8       -- Not allocated at https://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml#smi-numbers-30
+1.3.6.1.2.1.10.10     -- OID not allocated at https://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml#smi-numbers-7
+1.3.6.1.2.1.10.1      -- OID not allocated at https://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml#smi-numbers-7
+1.3.6.1.2.1.10.2      -- OID not allocated at https://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml#smi-numbers-7
+1.3.6.1.5.4.(1+)      -- The only child OID defined in the SMI Security for Confidentiality Codes ( https://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml#smi-numbers-28 ) is reserved(0)
+1.3.6.1.2.1.10.9999   -- OID not allocated at https://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml#smi-numbers-7
+1.3.0                 -- OID not defined at http://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml
+1.3.6.1.1.2.0         -- OID not defined at http://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml
+1.3.6.1.2.2.1.17      -- OID not defined at http://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml
+1.3.6.1.2.2.1.22      -- OID not defined at http://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml
+
+-- CATEGORY: Not defined by IETF (probably mistyped)
+1.3.6.1.6.3.1.2.2.6.1000    -- Not defined in IETF RFC 3418
+1.3.6.1.2.1.10.18.6.1.(24+) -- IETF RFC 4805 ( https://tools.ietf.org/html/rfc4805 ) only defines 23 child OIDs of 1.3.6.1.2.1.10.18.6.1
+1.3.6.1.2.1.10.18.8.1.(14+) -- IETF RFC 4805 ( https://tools.ietf.org/html/rfc4805 ) only defines 13 child OIDs of 1.3.6.1.2.1.10.18.8.1
+1.3.6.1.2.1.3.1.(2+)        -- According to IETF RFC 1213 ( https://tools.ietf.org/html/rfc1213 ), there is only one child OID underneath {iso(1) identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1) at(3) atTable(1)}
+1.3.6.1.2.1.39.1.2.(2+)     -- According to IETF RFC 1697 ( https://tools.ietf.org/html/rfc1697 ), there is only one child OID underneath {iso(1) identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1) rdbmsMIB(39) rdbmsObjects(1) rdbmsDbInfoTable(2)}
+1.3.6.1.2.1.39.1.3.(2+)     -- According to IETF RFC 1697 ( https://tools.ietf.org/html/rfc1697 ), there is only one child OID underneath {iso(1) identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1) rdbmsMIB(39) rdbmsObjects(1) rdbmsDbParamTable(3)}
+1.3.6.1.2.1.39.3.1.(2+)     -- According to IETF RFC 1697 ( https://tools.ietf.org/html/rfc1697 ), there is only one child OID underneath {iso(1) identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1) rdbmsMIB(39) rdbmsConformance(3) rdbmsCompliances(1)}
+1.3.6.1.2.1.39.3.2.(2+)     -- According to IETF RFC 1697 ( https://tools.ietf.org/html/rfc1697 ), there is only one child OID underneath {iso(1) identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1) rdbmsMIB(39) rdbmsConformance(3) rdbmsGroups(2)}
+1.3.6.1.2.1.39.(4+)         -- According to IETF RFC 1697 ( https://tools.ietf.org/html/rfc1697 ), there are only three child OIDs underneath {iso(1) identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1) rdbmsMIB(39)}
+1.3.6.1.2.1.4.21.1.(14+)    -- IETF RFC 1213 ( http://www.ietf.org/rfc/rfc1213.txt ) defines child OIDs up to number 13 underneath OID 1.3.6.1.2.1.4.21.1
+1.3.6.1.1.1.3               -- OID 1.3.6.1.1.1.3 is not defined in IETF RFC 2307 ( https://tools.ietf.org/html/rfc2307.html ). directoryOperTable OBJECT-TYPE is identified by OID 1.3.6.1.4.1.358.4.6.1.3
+1.3.6.1.2.1.99.1.1.(2+)     -- IETF RFC 3433 ( https://tools.ietf.org/html/rfc3433.html ) defines only one child OID underneath OID 1.3.6.1.2.1.99.1.1
+1.3.6.1.2.1.25.1.(8+)       -- OIDs underneath {iso(1) identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1) host(25) hrSystem(1)} do not have a number greater than 7 in IETF RFC 2790 ( https://tools.ietf.org/html/rfc2790.html )
+1.3.6.1.2.1.10.23.(5+)      -- OIDs underneath {iso(1) identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1) transmission(10) ppp(23)} are not expected to have a number greater than 4 ( https://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml#smi-numbers-8 )
+1.3.6.1.2.1.4.(40+)         -- Child OIDs of 1.3.6.1.2.1.4 do not have a number greater to 39 in IETF RFC 4293 ( https://datatracker.ietf.org/doc/rfc4293/ )
+1.3.6.1.2.1.69.10           -- Not assigned in IETF RFC 4639 ( https://tools.ietf.org/html/rfc4639 )
+1.3.6.1.2.1.69.4            -- Not assigned in IETF RFC 4639 ( https://tools.ietf.org/html/rfc4639 ), use {iso(1) identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1) docsSubMgt(125)} instead
+
+-- CATEGORY: Not assigned (probably mistyped)
+2.16.840.1.113883.3.44.21   -- The correct OID is {joint-iso-itu-t(2) country(16) us(840) organization(1) hl7(113883) externalUseRoots(3) stmarys(4421)}
+2.16.840.1.11422            -- The correct OID is {joint-iso-itu-t(2) country(16) us(840) organization(1) 114222}
+2.16.840.1.(113526-)        -- Childs OIDs of 2.16.840.1 have a number greater than or equal to 113,527
+1.3.6.1.2.1.10.10.1.1.2     -- This OID is not defined in ACC-MIB (v1) ( http://www.mibdepot.com/cgi-bin/getmib3.cgi?win=mib_a&i=1&n=ACC-MIB&r=ericsson&f=mib_txt_12_3_1_5&v=v1&t=tree#dot5Group )
+1.3.6.1.2.1.10.7.20         -- The correct OID is {iso(1) identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1) powerEthernetMIB(105)}
+1.3.6.1.2.1.10.7.300        -- The correct OID is {iso(1) member-body(2) us(840) ieee802dot3(10006) snmpmibs(300)}
+1.3.6.1.2.1.39.1.4.2        -- The correct OID is {iso(1) identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1) transmission(10) sonetMIB(39) sonetObjects(1) sonetFarEndLine(4) sonetFarEndLineIntervalTable(2)}
+1.3.6.1.2.2.2.1.(7+)        -- OIDs underneath {iso(1) identified-organization(3) dod(6) internet(1) mgmt(2) pib(2) frameworkPib(2) frwkBasePibClasses(1)} cannot be greater than 6 because there are only 6 OBJECT-TYPEs defined in IETF RFC 3318 ( https://tools.ietf.org/html/rfc3318.html )
+1.3.6.1.4.1.1226.685        -- The correct OID is 1.3.6.1.4.1.1226.1.685
+1.3.6.1.4.1.23.2.8889       -- No such OID underneath {iso(1) identified-organization(3) dod(6) internet(1) private(4) enterprise(1) 23 mibDoc(2)}
+1.3.12.999                  -- Not assigned by Ecma International
+0.0.0                       -- Not a series of ITU-T Recommendations
+0.3.18                      -- Not an assigned DNIC
+0.0.8.0                     -- Not an H-series ITU-T Recommendation
+0.0.23                      -- The W-series of ITU-T Recommendations does not exist
+2.16.840.1.113883.3.3724.1  -- The correct OID is 2.16.840.1.113883.3.3724
+2.49.0.0.174.24900174       -- Invalid WMO OID, see http://alerting.worldweather.org/authorities.php , correct is 2.49.0.0.174.0
+2.49.0.0.768.249007680      -- Invalid WMO OID, see http://alerting.worldweather.org/authorities.php , correct is 2.49.0.0.768.0
+2.49.0.2.0.0                -- Invalid WMO OID, see http://alerting.worldweather.org/authorities.php , correct is 2.49.0.2.0
+0.1.*                       -- There is no OID underneath OID 0.1
+1.2.826.1004                -- The correct OID is 1.2.826.0.1004
+1.2.826.1147                -- The correct OID is 1.2.826.0.1147
+1.2.826.1296                -- The correct OID is 1.2.826.0.1296
+1.2.840.63
+1.2.840.802                 -- The right OID for IEEE 802.3ad is 1.2.840.10006
+1.2.840.1006
+1.2.840.10008.421292        -- not assigned by DICOM
+1.2.840.11789
+2.2.840                     -- was 1.2.840 meant?
+2.16.840.1.113883.3.0       -- Not assigned by HL7
+2.16.840.101                -- The right OID is {joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101)}
+1.3.6.1.1.250
+1.3.6.1.5.2.(0-1)           -- kerberosV5
+1.3.6.1.5.2.3.0             -- Not allocated by Kerberos version 2
+1.3.6.1.5.2.4.0             -- Not allocated by Kerberos version 2
+0.0.17.3303.(!127)          -- The only child OID underneath 0.0.17.3303 is 127
+
+-- END OF FILE --
