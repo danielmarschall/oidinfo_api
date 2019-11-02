@@ -506,13 +506,18 @@ class OIDInfoAPI {
 		$bak_oid = $oid;
 		$oid = self::trySanitizeOID($oid);
 		if ($oid === false) {
-			fwrite(STDERR,"Ignored '$bak_oid', because it is not a valid OID\n");
+			fwrite(STDERR,"<!-- ERROR: Ignored '$bak_oid', because it is not a valid OID -->\n");
 			return $err;
 		}
 
 		if ($params['creation_allowed_check']) {
 			if (!$this->oidMayCreate($oid, $params['do_online_check'], $params['do_simpleping_check'], $params['do_illegality_check'])) {
-				fwrite(STDERR,"Creation of $oid disallowed\n");
+				fwrite(STDERR,"<!-- ERROR: Creation of $oid disallowed -->\n");
+				return $err;
+			}
+		} else {
+			if ($params['do_illegality_check'] && ($this->illegalOid($oid))) {
+				fwrite(STDERR,"<!-- ERROR: Creation of $oid disallowed -->\n");
 				return $err;
 			}
 		}
@@ -717,6 +722,20 @@ class OIDInfoAPI {
 		$this->illegality_rules[] = $rule;
 	}
 
+	private static function bigint_cmp($a, $b) {
+		if (function_exists('bccomp')) {
+			return bccomp($a, $b);
+		}
+
+		if (function_exists('gmp_cmp')) {
+			return gmp_cmp($a, $b);
+		}
+
+		if ($a > $b) return 1;
+		if ($a < $b) return -1;
+		return 0;
+	}
+
 	public function illegalOID($oid, &$illegal_root='') {
 		$bak = $oid;
 		$oid = self::trySanitizeOID($oid);
@@ -754,21 +773,26 @@ class OIDInfoAPI {
 				if ($startchar == '!') { // added in ver 2
 					$vararcs++;
 					$relem = substr($relem, 1, strlen($relem)-1); // cut away first char
-					if ($oelem != $relem) $varsfit++;
+					$cmp = self::bigint_cmp($oelem, $relem) != 0;
+					if ($cmp) $varsfit++;
 				} else if ($endchar == '+') {
 					$vararcs++;
 					$relem = substr($relem, 0, strlen($relem)-1); // cut away last char
-					if ($oelem >= $relem) $varsfit++;
+					$cmp = self::bigint_cmp($oelem, $relem) >= 0;
+					if ($cmp) $varsfit++;
 				} else if ($endchar == '-') {
 					$vararcs++;
 					$relem = substr($relem, 0, strlen($relem)-1); // cut away last char
-					if ($oelem <= $relem) $varsfit++;
+					$cmp = self::bigint_cmp($oelem, $relem) <= 0;
+					if ($cmp) $varsfit++;
 				} else if (strpos($relem, '-') !== false) {
 					$vararcs++;
 					$limarr = explode('-', $relem);
 					$limmin = $limarr[0];
 					$limmax = $limarr[1];
-					if (($oelem >= $limmin) && ($oelem <= $limmax)) $varsfit++;
+					$cmp_min = self::bigint_cmp($oelem, $limmin) >= 0;
+					$cmp_max = self::bigint_cmp($oelem, $limmax) <= 0;
+					if ($cmp_min && $cmp_max) $varsfit++;
 				} else {
 					if ($relem != $oelem) {
 						$rulefit = false;
