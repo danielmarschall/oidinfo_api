@@ -107,7 +107,7 @@
 1.3.6.1.4.(2+)               -- private (Sep 2015: max 1)
 2.(1000+)                    -- joint-iso-itu-t (Sep 2015: max 51 & 999)
 2.1.(124+)                   -- asn1 (Sep 2015: max 10 & 123)
-2.5.29.(71+)                 -- OIDs underneath {joint-iso-itu-t(2) ds(5) certificateExtension(29)} have a number less or equal to 70 in the current edition of Rec. ITU-T X.509 | ISO/IEC 9594-8
+2.5.29.(81+)                 -- OIDs underneath {joint-iso-itu-t(2) ds(5) certificateExtension(29)} have a number less or equal to 80 in the current edition of Rec. ITU-T X.509 | ISO/IEC 9594-8
 2.16.840.1.113883.3.(10000+) -- externalUseRoots (Dec 2017: upper bound set to 10,000)
 1.3.6.1.3.(147+)             -- The highest experiment number is currently (Sep 2015): 126 , see http://www.iana.org/assignments/smi-numbers/smi-numbers.xml
                              -- Various vendors claim to have arcs higher than the current number:  hippisw(147), ipsecSaMonModule(500), ipsecMIB(503), host(999), ppvpnTcMIB(1111), nhrpMIB(9999)
