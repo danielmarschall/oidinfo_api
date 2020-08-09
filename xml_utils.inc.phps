@@ -2,8 +2,8 @@
 
 /*
  * XML Encoding Utilities
- * Copyright 2011-2019 Daniel Marschall, ViaThinkSoft
- * Version 1.7
+ * Copyright 2011-2020 Daniel Marschall, ViaThinkSoft
+ * Version 1.7.1
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ function ordUTF8($c, $index = 0, &$bytes = null) {
 		return false;
 	}
 
-	$h = ord($c{$index});
+	$h = ord($c[$index]);
 
 	if ($h <= 0x7F) {
 		$bytes = 1;
@@ -92,16 +92,16 @@ function ordUTF8($c, $index = 0, &$bytes = null) {
 		return false;
 	} else if ($h <= 0xDF && $index < $len - 1) {
 		$bytes = 2;
-		return ($h & 0x1F) <<  6 | (ord($c{$index + 1}) & 0x3F);
+		return ($h & 0x1F) <<  6 | (ord($c[$index + 1]) & 0x3F);
 	} else if ($h <= 0xEF && $index < $len - 2) {
 		$bytes = 3;
-		return ($h & 0x0F) << 12 | (ord($c{$index + 1}) & 0x3F) << 6
-			| (ord($c{$index + 2}) & 0x3F);
+		return ($h & 0x0F) << 12 | (ord($c[$index + 1]) & 0x3F) << 6
+			| (ord($c[$index + 2]) & 0x3F);
 	} else if ($h <= 0xF4 && $index < $len - 3) {
 		$bytes = 4;
-		return ($h & 0x0F) << 18 | (ord($c{$index + 1}) & 0x3F) << 12
-			| (ord($c{$index + 2}) & 0x3F) << 6
-			| (ord($c{$index + 3}) & 0x3F);
+		return ($h & 0x0F) << 18 | (ord($c[$index + 1]) & 0x3F) << 12
+			| (ord($c[$index + 2]) & 0x3F) << 6
+			| (ord($c[$index + 3]) & 0x3F);
 	} else {
 		return false;
 	}

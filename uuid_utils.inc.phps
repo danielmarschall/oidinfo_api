@@ -2,8 +2,8 @@
 
 /*
  * UUID utils for PHP
- * Copyright 2011-2019 Daniel Marschall, ViaThinkSoft
- * Version 2019-11-04
+ * Copyright 2011-2020 Daniel Marschall, ViaThinkSoft
+ * Version 2020-02-28
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,10 @@
  * limitations under the License.
  */
 
+# This library requires either the GMP extension (or BCMath if gmp_supplement.inc.php is present)
+
 if (file_exists(__DIR__ . '/mac_utils.inc.phps')) include_once __DIR__ . '/mac_utils.inc.phps';
+if (file_exists(__DIR__ . '/gmp_supplement.inc.php')) include_once __DIR__ . '/gmp_supplement.inc.php';
 
 define('UUID_NAMEBASED_NS_DNS',     '6ba7b810-9dad-11d1-80b4-00c04fd430c8');
 define('UUID_NAMEBASED_NS_URL',     '6ba7b811-9dad-11d1-80b4-00c04fd430c8');
