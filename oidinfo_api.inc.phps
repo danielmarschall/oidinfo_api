@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-error_reporting(E_ALL | E_NOTICE | E_STRICT | E_DEPRECATED);
+// error_reporting(E_ALL | E_NOTICE | E_STRICT | E_DEPRECATED);
 
 if(!defined('STDIN'))  define('STDIN',  fopen('php://stdin',  'rb'));
 if(!defined('STDOUT')) define('STDOUT', fopen('php://stdout', 'wb'));
@@ -1021,7 +1021,7 @@ class OIDSimplePingProvider implements IOIDSimplePingProvider {
 		$in = "${oid}\n\0"; // PHP's socket_send() does not send a trailing \n . There needs to be something after the \n ... :(
 
 		if ($failcount >= self::SPP_MAX_CONNECTION_ATTEMPTS) {
-			echo "Query $oid: CONNECTION FAILED!\n";
+			echo "Query $oid: CONNECTION TO SIMPLE PING PROVIDER FAILED!\n";
 			return null;
 		}
 

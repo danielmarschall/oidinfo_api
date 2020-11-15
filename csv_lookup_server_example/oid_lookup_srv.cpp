@@ -1,6 +1,6 @@
 // **************************************************
-// ** OID CSV Lookup Server 1.1                    **
-// ** (c) 2016-2019 ViaThinkSoft, Daniel Marschall **
+// ** OID CSV Lookup Server 1.2                    **
+// ** (c) 2016-2020 ViaThinkSoft, Daniel Marschall **
 // **************************************************
 
 // todo: log verbosity + datetime
@@ -8,6 +8,7 @@
 // todo: server hat sich einfach so beendet... "read: connection reset by peer"
 // todo: 2019-02-24 service was booted together with the system, and i got "0 OIDs loaded". why???
 // todo: create vnag monitor that checks if this service is OK
+// todo: unexplained crash with version 1.1 : Signal "pipefail" (141) received after someone connected?!
 
 #include "oid_lookup_srv.h"
 
@@ -49,7 +50,9 @@ int read_from_client(int filedes) {
 	char buffer[MAXMSG];
 	int nbytes;
 
-	nbytes = read(filedes, buffer, MAXMSG);
+	nbytes = read(filedes, buffer, sizeof(buffer));
+	buffer[sizeof(buffer)-1] = 0; // Terminator
+
 	if (nbytes < 0) {
 		/* Read error. */
 		//perror("read");
@@ -61,8 +64,11 @@ int read_from_client(int filedes) {
 	} else {
 		/* Data read. */
 
-		for (int i=0; i<MAXMSG; ++i) {
-			if ((buffer[i] == 13) || (buffer[i] == 10)) buffer[i] = 0;
+		for (uint i=0; i<sizeof(buffer); ++i) {
+			if ((buffer[i] == 13) || (buffer[i] == 10)) {
+				buffer[i] = 0; // Terminator
+				break;
+			}
 		}
 
 		if (strcmp(buffer, "bye") == 0) {
@@ -70,6 +76,14 @@ int read_from_client(int filedes) {
 			return -1;
 		} else {
 			cons[filedes].queries++;
+
+			for (uint i=0; i<sizeof(buffer); ++i) {
+				if (buffer[i] == 0) break;
+				if (!((buffer[i] >= '0') && (buffer[i] <= '9')) && !(buffer[i] == '.')) {
+					fprintf(stdout, "%s:%d[%d] Client sent an invalid request.\n", inet_ntoa(cons[filedes].clientname.sin_addr), ntohs(cons[filedes].clientname.sin_port), filedes);
+					return -1;
+				}
+			}
 
 			// fprintf(stdout, "%s:%d[%d] Query #%d: %s\n", inet_ntoa(cons[filedes].clientname.sin_addr), ntohs(cons[filedes].clientname.sin_port), filedes, cons[filedes].queries, buffer);
 
@@ -139,7 +153,7 @@ int main(void) {
 	int sock;
 	fd_set active_fd_set, read_fd_set;
 
-	fprintf(stdout, "OID CSV Lookup Server 1.0 (c)2016-2019 ViaThinkSoft\n");
+	fprintf(stdout, "OID CSV Lookup Server 1.2 (c)2016-2020 ViaThinkSoft\n");
 	fprintf(stdout, "Listening at port: %d\n", PORT);
 	fprintf(stdout, "Max connections: %d\n", FD_SETSIZE);
 
@@ -208,6 +222,12 @@ int main(void) {
 							FD_CLR(new_fd, &active_fd_set);
 						} else {
 							fprintf(stdout, "%s:%d[%d] Connected\n", inet_ntoa(clientname.sin_addr), ntohs(clientname.sin_port), new_fd);
+						}
+
+						if (new_fd >= FD_SETSIZE) {
+							fprintf(stderr, "%s:%d[%d] new_fd reached cons[FD_SETSIZE] limit\n", inet_ntoa(clientname.sin_addr), ntohs(clientname.sin_port), new_fd);
+							close(new_fd);
+							FD_CLR(new_fd, &active_fd_set);
 						}
 
 						cons[new_fd].last_activity = time(NULL);

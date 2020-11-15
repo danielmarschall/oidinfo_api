@@ -2,8 +2,8 @@
 
 /*
  * UUID utils for PHP
- * Copyright 2011-2020 Daniel Marschall, ViaThinkSoft
- * Version 2020-09-12
+ * Copyright 2011 - 2020 Daniel Marschall, ViaThinkSoft
+ * Version 2020-11-14
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 # This library requires either the GMP extension (or BCMath if gmp_supplement.inc.php is present)
 
-if (file_exists(__DIR__ . '/mac_utils.inc.phps')) include_once __DIR__ . '/mac_utils.inc.phps';
+if (file_exists(__DIR__ . '/mac_utils.inc.phps')) include_once __DIR__ . '/mac_utils.inc.phps'; // optionally used for uuid_info()
 if (file_exists(__DIR__ . '/gmp_supplement.inc.php')) include_once __DIR__ . '/gmp_supplement.inc.php';
 
 define('UUID_NAMEBASED_NS_DNS',     '6ba7b810-9dad-11d1-80b4-00c04fd430c8');
@@ -167,7 +167,7 @@ function uuid_info($uuid) {
 				case 2:
 					echo sprintf("%-24s %s\n", "Version:", "[2] DCE Security version");
 
-					# The time_low field (which represents an integer in the range [0, 232-1]) is interpreted as a local-ID; that is, an identifier (within the domain specified by clock_seq_low) meaningful to the local host. In the particular case of a POSIX host, when combined with a POSIX UID or POSIX GID domain in the clock_seq_low field (above), the time_low field represents a POSIX UID or POSIX GID, respectively. 
+					# The time_low field (which represents an integer in the range [0, 232-1]) is interpreted as a local-ID; that is, an identifier (within the domain specified by clock_seq_low) meaningful to the local host. In the particular case of a POSIX host, when combined with a POSIX UID or POSIX GID domain in the clock_seq_low field (above), the time_low field represents a POSIX UID or POSIX GID, respectively.
 					$x = substr($uuid, 0, 8);
 					echo sprintf("%-24s %s\n", "Local ID:", "0x$x");
 
@@ -341,14 +341,14 @@ function uuid_to_oid($uuid) {
 }
 
 function gen_uuid($prefer_timebased = true) {
-	if ($prefer_timebased) $uuid = gen_uuid_timebased();
+	$uuid = $prefer_timebased ? gen_uuid_timebased() : false;
 	if ($uuid === false) $uuid = gen_uuid_random();
 	return $uuid;
 }
 
 // Version 1 (Time based) UUID
 function gen_uuid_timebased() {
-	# On Debian: aptitude install php-uuid
+	# On Debian: apt-get install php-uuid
 	# extension_loaded('uuid')
 	if (function_exists('uuid_create')) {
 		# OSSP uuid extension like seen in php5-uuid at Debian 8
@@ -363,15 +363,148 @@ function gen_uuid_timebased() {
 		return trim(uuid_create(UUID_TYPE_TIME));
 	}
 
-	# On Debian: aptitude install uuid-runtime
-	$out = array();
-	$ec = -1;
-	exec('uuidgen -t', $out, $ec);
-	if ($ec == 0) return $out[0];
+	# On Debian: apt-get install uuid-runtime
+	if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
+		$out = array();
+		$ec = -1;
+		exec('uuidgen -t 2>/dev/null', $out, $ec);
+		if ($ec == 0) return $out[0];
+	}
 
-	# TODO: Implement the time based generation routine ourselves!
-	# At the moment we cannot determine the time based UUID
+	# If we hadn't any success yet, then implement the time based generation routine ourselves!
+	# Based on https://github.com/fredriklindberg/class.uuid.php/blob/master/class.uuid.php
+
+	$uuid = array(
+		'time_low' => 0,		/* 32-bit */
+		'time_mid' => 0,		/* 16-bit */
+		'time_hi' => 0,			/* 16-bit */
+		'clock_seq_hi' => 0,		/*  8-bit */
+		'clock_seq_low' => 0,		/*  8-bit */
+		'node' => array()		/* 48-bit */
+	);
+
+	/*
+	 * Get current time in 100 ns intervals. The magic value
+	 * is the offset between UNIX epoch and the UUID UTC
+	 * time base October 15, 1582.
+	 */
+	$tp = gettimeofday();
+	$time = ($tp['sec'] * 10000000) + ($tp['usec'] * 10) + 0x01B21DD213814000;
+
+	$uuid['time_low'] = $time & 0xffffffff;
+	/* Work around PHP 32-bit bit-operation limits */
+	$high = intval($time / 0xffffffff);
+	$uuid['time_mid'] = $high & 0xffff;
+	$uuid['time_hi'] = (($high >> 16) & 0xfff) | (1/*TimeBased*/ << 12);
+
+	/*
+	 * We don't support saved state information and generate
+	 * a random clock sequence each time.
+	 */
+	$uuid['clock_seq_hi'] = 0x80 | mt_rand(0, 64);
+	$uuid['clock_seq_low'] = mt_rand(0, 255);
+
+	/*
+	 * Node should be set to the 48-bit IEEE node identifier
+	 */
+	$mac = get_mac_address();
+	if ($mac) {
+		$node = str_replace(':','',$mac);
+		for ($i = 0; $i < 6; $i++) {
+			$uuid['node'][$i] = hexdec(substr($node, $i*2, 2));
+		}
+
+		/*
+		 * Now output the UUID
+		 */
+		return sprintf(
+			'%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x',
+			($uuid['time_low']), ($uuid['time_mid']), ($uuid['time_hi']),
+			$uuid['clock_seq_hi'], $uuid['clock_seq_low'],
+			$uuid['node'][0], $uuid['node'][1], $uuid['node'][2],
+			$uuid['node'][3], $uuid['node'][4], $uuid['node'][5]);
+	}
+
+	# We cannot generate the timebased UUID!
 	return false;
+}
+
+function get_mac_address() {
+	static $detected_mac = false;
+
+	if ($detected_mac !== false) { // false NOT null!
+		return $detected_mac;
+	}
+
+	// TODO: This should actually be part of mac_utils.inc.php, but we need it
+	//       here, and mac_utils.inc.php shall only be optional. What to do?
+	if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+		// Windows
+		$cmds = array(
+			"ipconfig /all", // faster
+			"getmac"
+		);
+		foreach ($cmds as $cmd) {
+			$out = array();
+			$ec = -1;
+			exec($cmd, $out, $ec);
+			if ($ec == 0) {
+				$out = implode("\n",$out);
+				$m = array();
+				if (preg_match("/([0-9a-f]{2}\\-[0-9a-f]{2}\\-[0-9a-f]{2}\\-[0-9a-f]{2}\\-[0-9a-f]{2}\\-[0-9a-f]{2})/ismU", $out, $m)) {
+					$detected_mac = str_replace('-', ':', strtolower($m[1]));
+					return $detected_mac;
+				}
+			}
+		}
+	} else if (strtoupper(PHP_OS) == 'DARWIN') {
+		// Mac OS X
+		$cmds = array(
+			"networksetup -listallhardwareports 2>/dev/null",
+			"netstat -i 2>/dev/null"
+		);
+		foreach ($cmds as $cmd) {
+			$out = array();
+			$ec = -1;
+			exec($cmd, $out, $ec);
+			if ($ec == 0) {
+				$out = implode("\n",$out);
+				$m = array();
+				if (preg_match("/([0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2})/ismU", $out, $m)) {
+					$detected_mac = $m[1];
+					return $detected_mac;
+				}
+			}
+		}
+	} else {
+		// Linux
+		foreach (glob('/sys/class/net/'.'*'.'/address') as $x) {
+			if (!strstr($x,'/lo/')) {
+				$detected_mac = trim(file_get_contents($x));
+				return $detected_mac;
+			}
+		}
+		$cmds = array(
+			"netstat -ie 2>/dev/null",
+			"ifconfig 2>/dev/null" // only available for root (because it is in sbin)
+		);
+		foreach ($cmds as $cmd) {
+			$out = array();
+			$ec = -1;
+			exec($cmd, $out, $ec);
+			if ($ec == 0) {
+				$out = implode("\n",$out);
+				$m = array();
+				if (preg_match("/([0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2})/ismU", $out, $m)) {
+					$detected_mac = $m[1];
+					return $detected_mac;
+				}
+			}
+		}
+	}
+
+	$detected_mac = null;
+	return $detected_mac;
 }
 
 // Version 2 (DCE Security) UUID
@@ -411,7 +544,7 @@ function gen_uuid_md5_namebased($namespace_uuid, $name) {
 
 // Version 4 (Random) UUID
 function gen_uuid_random() {
-	# On Debian: aptitude install php-uuid
+	# On Debian: apt-get install php-uuid
 	# extension_loaded('uuid')
 	if (function_exists('uuid_create')) {
 		# OSSP uuid extension like seen in php5-uuid at Debian 8
@@ -426,15 +559,17 @@ function gen_uuid_random() {
 		return trim(uuid_create(UUID_TYPE_RANDOM));
 	}
 
-	# On Debian: aptitude install uuid-runtime
-	$out = array();
-	$ec = -1;
-	exec('uuidgen -r', $out, $ec);
-	if ($ec == 0) return $out[0];
+	if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
+		# On Debian: apt-get install uuid-runtime
+		$out = array();
+		$ec = -1;
+		exec('uuidgen -r 2>/dev/null', $out, $ec);
+		if ($ec == 0) return $out[0];
 
-	# On Debian Jessie: UUID V4 (Random)
-	if (file_exists('/proc/sys/kernel/random/uuid')) {
-		return file_get_contents('/proc/sys/kernel/random/uuid');
+		# On Debian Jessie: UUID V4 (Random)
+		if (file_exists('/proc/sys/kernel/random/uuid')) {
+			return file_get_contents('/proc/sys/kernel/random/uuid');
+		}
 	}
 
 	# Make the UUID by ourselves
