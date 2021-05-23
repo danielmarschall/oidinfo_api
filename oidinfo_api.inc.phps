@@ -2,8 +2,8 @@
 
 /*
  * OID-Info.com API for PHP
- * Copyright 2019-2020 Daniel Marschall, ViaThinkSoft
- * Version 2020-09-12
+ * Copyright 2019-2021 Daniel Marschall, ViaThinkSoft
+ * Version 2021-05-21
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -995,14 +995,21 @@ class OIDSimplePingProvider implements IOIDSimplePingProvider {
 	protected function spp_reader_init() {
 		$this->spp_reader_uninit();
 
-		$ary = explode(':', $this->addr);
+		$ary = explode(':', $this->addr); // TODO: does not work with an IPv6 address
 		$host = $ary[0];
 		$service_port = isset($ary[1]) ? $ary[1] : self::DEFAULT_PORT;
-		$address = @gethostbyname($host);
-		if ($address === false) {
-			echo "gethostbyname() failed.\n"; // TODO: exceptions? (also all "echos" below)
-			return false;
+
+		$is_ip = filter_var($host, FILTER_VALIDATE_IP) !== false;
+		if (!$is_ip) {
+			$address = @gethostbyname($host);
+			if ($address === $host) {
+				echo "gethostbyname() failed.\n"; // TODO: exceptions? (also all "echos" below)
+				return false;
+			}
+		} else {
+			$address = $host;
 		}
+
 		$this->socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 		if ($this->socket === false) {
 			echo "socket_create() failed: " . socket_strerror(socket_last_error()) . "\n";
