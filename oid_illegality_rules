@@ -2,7 +2,7 @@
 
 -- Standard OID Illegality Rule Definition File
 -- by Daniel Marschall and Olivier Dubuisson
--- Revision: 19 January 2020
+-- Revision: 2 June 2021
 -- This file contains all oid-info.com rules as of 2018_09_18_illegal_oid_table.csv
 
 -- SYNTAX:
@@ -228,6 +228,7 @@
 2.16.840.1.113883.3.3724.1  -- The correct OID is 2.16.840.1.113883.3.3724
 2.49.0.0.174.24900174       -- Invalid WMO OID, see http://alerting.worldweather.org/authorities.php , correct is 2.49.0.0.174.0
 2.49.0.0.768.249007680      -- Invalid WMO OID, see http://alerting.worldweather.org/authorities.php , correct is 2.49.0.0.768.0
+2.49.0.0.834.249008341      -- Invalid WHO OID, see http://alerting.worldweather.org/authorities.php , correct is 2.49.0.0.834.1
 2.49.0.2.0.0                -- Invalid WMO OID, see http://alerting.worldweather.org/authorities.php , correct is 2.49.0.2.0
 0.1.*                       -- There is no OID underneath OID 0.1
 1.2.826.1004                -- The correct OID is 1.2.826.0.1004
