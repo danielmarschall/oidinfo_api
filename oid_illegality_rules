@@ -2,7 +2,7 @@
 
 -- Standard OID Illegality Rule Definition File
 -- by Daniel Marschall and Olivier Dubuisson
--- Revision: 3 June 2021
+-- Revision: 17 July 2021
 -- This file contains all oid-info.com rules as of 2018_09_18_illegal_oid_table.csv
 
 -- SYNTAX:
@@ -11,7 +11,7 @@
 -- 2.999.(11+).0 : the arc values 11 and above are illegal
 -- 2.999.(1-5).0 : the arc values 1 to 5 are illegal
 -- 2.999.(!3).0  : only arc 3 is valid, all others are invalid (added in version 2)
--- 2.999.*.0     : * is equal to (0+)
+-- 2.999.*       : * is equal to (0+). Usually used for leaf OIDs
 
 
 -- TODO: Add more constraints according to http://www.iana.org/assignments/smi-numbers/smi-numbers.xml
@@ -142,7 +142,7 @@
 2.16.158.5                -- Taiwan-CA.com, Inc. (TaiCA) claims to have this OID but the Registration Authority for the superior OID confirmed that this OID was never assigned to them
 2.16.158.6                -- CHIEF Telecom Inc. (www.chief.com.tw) claims to use this OID but it is illegal because Taiwan non-government organizations are registered under {joint-iso-itu-t(2) country(16) tw(158) organization(1)}
 2.16.158.7                -- Organizations have OIDs under {joint-iso-itu-t(2) country(16) tw(158) organization(1)}
-1.3.6.1.4.1.(65665+)      -- There are illegal definitions of the arcs 65665, 76561 and 123456 found on the internet.
+1.3.6.1.4.1.(65665+)      -- There are illegal definitions of the arcs 65665, 76561 and 123456 found on the Internet.
 
 -- CATEGORY: Definitions
 2.27.(128+)   -- Child OIDs are limited to 127 so that the OID can encode in 2 octets.
@@ -162,6 +162,9 @@
 2.16.840.1.113883.3.24.6.2      -- Entered in error in HL7 OID Registry; The correct OID is 2.16.840.1.113883.4.345
 2.16.840.1.113883.3.41          -- Rejected by HL7 because it is a duplicate of 2.16.840.1.113883.6.14
 2.16.840.1.113883.3.4831.3      -- rejected by HL7: http://www.hl7.org/oid/index.cfm?Comp_OID=2.16.840.1.113883.3.4831.3
+
+-- CATEGORY: Misdefined
+0.4.0.0.1.3.2.6.*            -- The ETSI OID tree mistakenly displays child OIDs for application contexts which are indeed defined under OID {itu-t(0) identified-organization(4) etsi(0) mobileDomain(0) gsm-Network(1) applicationContext(0)}.
 
 -- CATEGORY: Misdefined in specifications
 1.2.840.113549.1.9.16.0.999  -- According to IETF RFC Errata 3866 ( https://www.rfc-editor.org/errata_search.php?eid=3866 ), the correct number is 49 and not 999 as wrongly specified in IETF RFC 6210
