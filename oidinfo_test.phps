@@ -34,6 +34,6 @@ assert($oa->illegalOID('1.2.6.0') === true); // 1.2.6 is illegal -> 1.2.6.0 too
 assert($oa->illegalOID('2.25.340282366920938463463374607431768211455') === false);
 assert($oa->illegalOID('2.25.340282366920938463463374607431768211456') === true);
 
-assert($oa->strictCheckSyntax('0', false, true) === true);
-assert($oa->strictCheckSyntax('1', false, true) === true);
-assert($oa->strictCheckSyntax('(requesting)', false, true) === false);
+assert($oa->strictCheckSyntax('0') === true);
+assert($oa->strictCheckSyntax('1') === true);
+assert($oa->strictCheckSyntax('(requesting)') === false);
