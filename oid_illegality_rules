@@ -2,7 +2,7 @@
 
 -- Standard OID Illegality Rule Definition File
 -- by Daniel Marschall and Olivier Dubuisson
--- Revision: 17 July 2021
+-- Revision: 28 November 2022
 -- This file contains all oid-info.com rules as of 2018_09_18_illegal_oid_table.csv
 
 -- SYNTAX:
@@ -105,7 +105,7 @@
 1.3.6.1.2.1.0.*              -- reserved
 1.3.6.1.2.1.1.(10+)          -- system (Sep 2015: max 9)
 1.3.6.1.4.(2+)               -- private (Sep 2015: max 1)
-2.(1000+)                    -- joint-iso-itu-t (Sep 2015: max 51 & 999)
+2.(1000+)                    -- joint-iso-itu-t (Apr 2019: max 52 & 999)
 2.1.(124+)                   -- asn1 (Sep 2015: max 10 & 123)
 2.5.29.(81+)                 -- OIDs underneath {joint-iso-itu-t(2) ds(5) certificateExtension(29)} have a number less or equal to 80 in the current edition of Rec. ITU-T X.509 | ISO/IEC 9594-8
 2.16.840.1.113883.3.(10000+) -- externalUseRoots (Dec 2017: upper bound set to 10,000)
@@ -155,7 +155,9 @@
 
 -- CATEGORY: Cancelled, withdrawn and rejected OIDs
 1.0.29192.2.2.3                 -- This OID was allocated to the "Speck" family of block ciphers in ISO/IEC 29192-2 PDAM1 in 2017 but this proposed amendment has been cancelled
-1.3.6.1.4.1.37476.9000.36       -- Withdrawn FreeOID by ViaThinkSoft (spam), https://www.viathinksoft.de/freeoid/display_oid.php?oid=36
+1.3.6.1.4.1.37476.9000.36       -- Withdrawn FreeOID by ViaThinkSoft (spam), https://oidplus.viathinksoft.com/oidplus/?goto=oid%3A1.3.6.1.4.1.37476.9000.36
+1.3.6.1.4.1.37476.9000.138      -- Withdrawn FreeOID by ViaThinkSoft (spam), https://oidplus.viathinksoft.com/oidplus/?goto=oid%3A1.3.6.1.4.1.37476.9000.138
+1.3.112.4.67.1.5                -- This OID identifies a retired working group of the Systems Engineering Area (SEA)
 2.16.840.1.113883.3.20          -- Rejected in the HL7 OID Registry
 2.16.840.1.113883.13.(223-225)  -- Entered in error in HL7 OID Registry
 2.16.840.1.113883.3.24.6.1      -- Entered in error in HL7 OID Registry; The correct OID is 2.16.840.1.113883.4.344
