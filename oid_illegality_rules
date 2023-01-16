@@ -157,7 +157,6 @@
 1.0.29192.2.2.3                 -- This OID was allocated to the "Speck" family of block ciphers in ISO/IEC 29192-2 PDAM1 in 2017 but this proposed amendment has been cancelled
 1.3.6.1.4.1.37476.9000.36       -- Withdrawn FreeOID by ViaThinkSoft (spam), https://oidplus.viathinksoft.com/oidplus/?goto=oid%3A1.3.6.1.4.1.37476.9000.36
 1.3.6.1.4.1.37476.9000.138      -- Withdrawn FreeOID by ViaThinkSoft (spam), https://oidplus.viathinksoft.com/oidplus/?goto=oid%3A1.3.6.1.4.1.37476.9000.138
-1.3.112.4.67.1.5                -- This OID identifies a retired working group of the Systems Engineering Area (SEA)
 2.16.840.1.113883.3.20          -- Rejected in the HL7 OID Registry
 2.16.840.1.113883.13.(223-225)  -- Entered in error in HL7 OID Registry
 2.16.840.1.113883.3.24.6.1      -- Entered in error in HL7 OID Registry; The correct OID is 2.16.840.1.113883.4.344
