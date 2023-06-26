@@ -77,16 +77,14 @@ class OIDInfoAPI {
 		if (!self::strictCheckSyntax($oid)) return false;
 
 		$pingResult = $this->pingOID($oid);
-		$ret = $pingResult[self::PING_IDX_EXISTS] >= 1;
-		return $ret;
+		return $pingResult[self::PING_IDX_EXISTS] >= 1;
 	}
 
 	public function checkOnlineAvailable($oid) {
 		if (!self::strictCheckSyntax($oid)) return false;
 
 		$pingResult = $this->pingOID($oid);
-		$ret = $pingResult[self::PING_IDX_EXISTS] == 2;
-		return $ret;
+		return $pingResult[self::PING_IDX_EXISTS] == 2;
 	}
 
 	public function checkOnlineAllowed($oid) {
@@ -219,9 +217,7 @@ class OIDInfoAPI {
 		// HL7 registry has included this accidently
 		$phone = str_replace('&quot;', '', $phone);
 
-		$phone = trim($phone);
-
-		return $phone;
+		return trim($phone);
 	}
 
 	private static function strip_to_xhtml_light($str, $allow_strong_text=false) {
@@ -238,7 +234,7 @@ class OIDInfoAPI {
 		$str = preg_replace('@<\s*script.+<\s*/script.*>@isU', '', $str);
 		$str = preg_replace('@<\s*style.+<\s*/style.*>@isU', '', $str);
 
-		$str = preg_replace_callback(
+		return preg_replace_callback(
 			'@<(\s*/{0,1}\d*)([^\s/>]+)(\s*[^>]*)>@i',
 			function ($treffer) {
 				// see http://oid-info.com/xhtml-light.xsd
@@ -253,8 +249,6 @@ class OIDInfoAPI {
 					return '';
 				}
 			}, $str);
-
-		return $str;
 	}
 
 	const OIDINFO_CORRECT_DESC_OPTIONAL_ENDING_DOT = 0;
@@ -409,9 +403,7 @@ class OIDInfoAPI {
 		}
 
 		// Required for XML importer of oid-info.com (E-Mail 09.12.2021)
-		$desc = str_replace('&amp;', '&amp;amp;', $desc);
-
-		return $desc;
+		return str_replace('&amp;', '&amp;amp;', $desc);
 	}
 
 	public function xmlAddHeader($firstName, $lastName, $email) {
@@ -613,6 +605,7 @@ class OIDInfoAPI {
 					throw new OIDInfoException("Unexpected soft-correction behavior for ASN.1 IDs");
 				}
 			}
+			unset($synid);
 		}
 
 		// ATTENTION: the XML-generator will always add <dotted-oid> , but what will happen if additionally an
@@ -630,6 +623,7 @@ class OIDInfoAPI {
 				// Do not allow Numeric-only. It would only be valid in an IRI path, but not in a single identifier
 				if (!iri_arc_valid($iri, false)) $iri = null;
 			}
+			unset($iri);
 		}
 
 		if (isset($elements['first-registrant']['phone']))
@@ -1029,7 +1023,7 @@ class OIDSimplePingProvider implements IOIDSimplePingProvider {
 
 		$ary = explode(':', $this->addr); // TODO: does not work with an IPv6 address
 		$host = $ary[0];
-		$service_port = isset($ary[1]) ? $ary[1] : self::DEFAULT_PORT;
+		$service_port = $ary[1] ?? self::DEFAULT_PORT;
 
 		$is_ip = filter_var($host, FILTER_VALIDATE_IP) !== false;
 		if (!$is_ip) {
@@ -1063,7 +1057,7 @@ class OIDSimplePingProvider implements IOIDSimplePingProvider {
 	}
 
 	protected function spp_reader_avail($oid, $failcount=0) {
-		$in = "${oid}\n\0"; // PHP's socket_send() does not send a trailing \n . There needs to be something after the \n ... :(
+		$in = "$oid\n\0"; // PHP's socket_send() does not send a trailing \n . There needs to be something after the \n ... :(
 
 		if ($failcount >= self::SPP_MAX_CONNECTION_ATTEMPTS) {
 			$msg = "Query $oid: CONNECTION TO SIMPLE PING PROVIDER FAILED!\n";
@@ -1109,11 +1103,11 @@ class OIDSimplePingProvider implements IOIDSimplePingProvider {
 	}
 
 	public function disconnect() {
-		return $this->spp_reader_uninit();
+		$this->spp_reader_uninit();
 	}
 
 	public function connect() {
-		return $this->spp_reader_init();
+		$this->spp_reader_init();
 	}
 
 	function __construct($addr='localhost:49500') {
