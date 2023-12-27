@@ -3,7 +3,7 @@
 /*
  * UUID utils for PHP
  * Copyright 2011 - 2023 Daniel Marschall, ViaThinkSoft
- * Version 2023-07-13
+ * Version 2023-11-11
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,20 @@
 # This library requires either the GMP extension (or BCMath if gmp_supplement.inc.php is present)
 // TODO: If we are on 64 bit PHP (PHP_INT_SIZE > 4), then replace GMP with normal PHP operations
 
-if (file_exists(__DIR__ . '/mac_utils.inc.phps')) include_once __DIR__ . '/mac_utils.inc.phps'; // optionally used for uuid_info()
-if (file_exists(__DIR__ . '/mac_utils.inc.php')) include_once __DIR__ . '/mac_utils.inc.php'; // optionally used for uuid_info()
-if (file_exists(__DIR__ . '/gmp_supplement.inc.php')) include_once __DIR__ . '/gmp_supplement.inc.php';
+if (file_exists($f = __DIR__ . '/mac_utils.inc.php')) include_once $f;
+else if (file_exists($f = __DIR__ . '/mac_utils.inc.phps')) include_once $f;
 
-const UUID_NAMEBASED_NS_DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8'; // FQDN
+if (file_exists($f = __DIR__ . '/gmp_supplement.inc.php')) include_once $f;
+else if (file_exists($f = __DIR__ . '/gmp_supplement.inc.phps')) include_once $f;
+
+if (file_exists($f = __DIR__ . '/OidDerConverter.class.php')) include_once $f;
+else if (file_exists($f = __DIR__ . '/OidDerConverter.class.phps')) include_once $f;
+
+// Note: The RFC allows various notations as payload, not a strict notation constraint
+const UUID_NAMEBASED_NS_DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
 const UUID_NAMEBASED_NS_URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
 const UUID_NAMEBASED_NS_OID = '6ba7b812-9dad-11d1-80b4-00c04fd430c8';
-const UUID_NAMEBASED_NS_X500_DN = '6ba7b814-9dad-11d1-80b4-00c04fd430c8'; // "DER or text encoding" according to RFC4122bis
+const UUID_NAMEBASED_NS_X500_DN = '6ba7b814-9dad-11d1-80b4-00c04fd430c8';
 
 if (!function_exists('_random_int')) {
 	function _random_int($min, $max) {
@@ -53,8 +59,48 @@ function uuid_valid($uuid) {
 	return ($uuid == '');
 }
 
+function uuid_equal($uuid1, $uuid2) {
+	$uuid1 = uuid_canonize($uuid1);
+	if (!$uuid1) return false;
+	$uuid2 = uuid_canonize($uuid2);
+	if (!$uuid2) return false;
+	return $uuid1 === $uuid2;
+}
+
+function uuid_version($uuid) {
+	$uuid = uuid_canonize($uuid);
+	if (!$uuid) return false;
+	return substr($uuid, 19, 1);
+}
+
 function uuid_info($uuid, $echo=true) {
 	if (!uuid_valid($uuid)) return false;
+
+	$oid = uuid_to_oid($uuid);
+
+	echo sprintf("%-32s %s\n", "Your input:", $uuid);
+	echo "\n";
+	echo "<u>Various notations:</u>\n";
+	echo "\n";
+	echo sprintf("%-32s %s\n", "URN:", 'urn:uuid:' . strtolower(oid_to_uuid(uuid_to_oid($uuid))));
+	echo sprintf("%-32s %s\n", "URI:", 'uuid:' . strtolower(oid_to_uuid(uuid_to_oid($uuid))));
+	echo sprintf("%-32s %s\n", "Microsoft GUID syntax:", '{' . strtoupper(oid_to_uuid(uuid_to_oid($uuid))) . '}');
+	echo sprintf("%-32s %s\n", "C++ struct syntax:", uuid_c_syntax($uuid));
+	echo "\n";
+
+	echo sprintf("%-32s %s\n", "As OID (ISO/ITU-T 128 bits):", $oid=uuid_to_oid($uuid, '2.25'));
+	# Removed because it is too much information (we would also need to add this to the other OIDs too)
+	#if (class_exists('OidDerConverter')) {
+	#	echo sprintf("%-32s %s\n", "DER encoding of OID:", OidDerConverter::hexarrayToStr(OidDerConverter::oidToDER($oid)));
+	#}
+	echo sprintf("%-32s %s\n", "As OID (Microsoft):", $oid=uuid_to_oid($uuid, '1.2.840.113556.1.8000.2554'));
+	echo sprintf("%-32s %s\n", "As OID (Waterjuice 2x64 bits):", $oid=uuid_to_oid($uuid, '1.3.6.1.4.1.54392.1'));
+	echo sprintf("%-32s %s\n", "As OID (Waterjuice 4x32 bits):", $oid=uuid_to_oid($uuid, '1.3.6.1.4.1.54392.2'));
+	echo sprintf("%-32s %s\n", "As OID (Waterjuice 8x16 bits):", $oid=uuid_to_oid($uuid, '1.3.6.1.4.1.54392.3'));
+
+	echo "\n";
+
+	echo "<u>Interpretation of the UUID:</u>\n\n";
 
 	if (!$echo) ob_start();
 
@@ -287,9 +333,9 @@ function uuid_info($uuid, $echo=true) {
 			} else if (($version >= 3) && ($version <= 5)) {
 				echo sprintf("%-32s %s\n", "Variant:", "[0b10_] RFC 4122 (Leach-Mealling-Salz)");
 			} else if (($version >= 6) && ($version <= 8)) {
-				echo sprintf("%-32s %s\n", "Variant:", "[0b10_] RFC 4122bis (Leach-Mealling-Peabody-Davis)");
+				echo sprintf("%-32s %s\n", "Variant:", "[0b10_] RFC draft-ietf-uuidrev-rfc4122bis (Davis-Peabody-Leach)"); // TODO: When new RFC is published, replace the RFC number
 			} else {
-				echo sprintf("%-32s %s\n", "Variant:", "[0b10_] RFC 4122 ?");
+				echo sprintf("%-32s %s\n", "Variant:", "[0b10_] Unknown RFC");
 			}
 
 			switch ($version) {
@@ -304,7 +350,7 @@ function uuid_info($uuid, $echo=true) {
 					-  8 bit Clock Sequence Low
 					- 48 bit MAC Address
 					*/
-					echo sprintf("%-32s %s\n", "Version:", "[6] Reordered Time");
+					echo sprintf("%-32s %s\n", "Version:", "[0x6] Reordered Time-Based");
 					$uuid = substr($uuid,  0, 8).'-'.
 					        substr($uuid,  8, 4).'-'.
 					        substr($uuid, 12, 4).'-'.
@@ -327,7 +373,7 @@ function uuid_info($uuid, $echo=true) {
 					- 48 bit MAC Address
 					*/
 
-					if ($version == 1) echo sprintf("%-32s %s\n", "Version:", "[1] Time-based with unique host identifier");
+					if ($version == 1) echo sprintf("%-32s %s\n", "Version:", "[0x1] Time-based with unique host identifier");
 
 					# Timestamp: Count of 100ns intervals since 15 Oct 1582 00:00:00
 					# 1/0,0000001 = 10000000
@@ -344,6 +390,7 @@ function uuid_info($uuid, $echo=true) {
 					$x = hexdec(substr($uuid, 16, 4));
 					$dec = $x & 0x3FFF; // The highest 2 bits are used by "variant" (10x)
 					$hex = substr($uuid, 16, 4);
+					$hex = '<abbr title="The highest 2 bits are used by the UUID variant (10xx)">'.$hex[0].'</abbr>'.substr($hex,1);
 					echo sprintf("%-32s %s\n", "Clock ID:", "[0x$hex] $dec");
 
 					$x = substr($uuid, 20, 12);
@@ -355,10 +402,8 @@ function uuid_info($uuid, $echo=true) {
 					$nodeid = strtoupper($nodeid);
 					echo sprintf("%-32s %s\n", "Node ID:", "[0x$x] $nodeid");
 
-					if (function_exists('decode_mac')) {
-						echo "\nIn case that this Node ID is a MAC address, here is the interpretation of that MAC address:\n\n";
-						decode_mac(strtoupper($nodeid));
-					}
+					echo "\n<u>In case that this Node ID is a MAC address, here is the interpretation of that MAC address:</u>\n\n";
+					decode_mac(strtoupper($nodeid));
 
 					break;
 				case 2:
@@ -376,12 +421,12 @@ function uuid_info($uuid, $echo=true) {
 
 					// see also https://unicorn-utterances.com/posts/what-happened-to-uuid-v2
 
-					echo sprintf("%-32s %s\n", "Version:", "[2] DCE Security version");
+					echo sprintf("%-32s %s\n", "Version:", "[0x2] DCE Security version");
 
 					# The clock_seq_low field (which represents an integer in the range [0, 28-1]) is interpreted as a local domain (as represented by sec_rgy_domain_t; see sec_rgy_domain_t ); that is, an identifier domain meaningful to the local host. (Note that the data type sec_rgy_domain_t can potentially hold values outside the range [0, 28-1]; however, the only values currently registered are in the range [0, 2], so this type mismatch is not significant.) In the particular case of a POSIX host, the value sec_rgy_domain_person is to be interpreted as the "POSIX UID domain", and the value sec_rgy_domain_group is to be interpreted as the "POSIX GID domain".
 					$x = substr($uuid, 18, 2);
-					if ($x == '00') $domain_info = 'Person (POSIX: User-ID)';
-					else if ($x == '01') $domain_info = 'Group (POSIX: Group-ID)';
+					if ($x == '00') $domain_info = 'Person (e.g. POSIX UID)';
+					else if ($x == '01') $domain_info = 'Group (e.g. POSIX GID)';
 					else if ($x == '02') $domain_info = 'Organization';
 					else $domain_info = 'site-defined (Domain '.hexdec($x).')';
 					echo sprintf("%-32s %s\n", "Local Domain:", "[0x$x] $domain_info");
@@ -417,6 +462,7 @@ function uuid_info($uuid, $echo=true) {
 					$x = hexdec(substr($uuid, 16, 2));
 					$dec = $x & 0x3F; // The highest 2 bits are used by "variant" (10xx)
 					$hex = substr($uuid, 16, 2);
+					$hex = '<abbr title="The highest 2 bits are used by the UUID variant (10xx)">'.$hex[0].'</abbr>'.substr($hex,1);
 					echo sprintf("%-32s %s\n", "Clock ID:", "[0x$hex] $dec");
 
 					$x = substr($uuid, 20, 12);
@@ -428,10 +474,8 @@ function uuid_info($uuid, $echo=true) {
 					$nodeid = strtoupper($nodeid);
 					echo sprintf("%-32s %s\n", "Node ID:", "[0x$x] $nodeid");
 
-					if (function_exists('decode_mac')) {
-						echo "\nIn case that this Node ID is a MAC address, here is the interpretation of that MAC address:\n\n";
-						decode_mac(strtoupper($nodeid));
-					}
+					echo "\n<u>In case that this Node ID is a MAC address, here is the interpretation of that MAC address:</u>\n\n";
+					decode_mac(strtoupper($nodeid));
 
 					break;
 				case 3:
@@ -444,7 +488,7 @@ function uuid_info($uuid, $echo=true) {
 					- 62 bit Hash Low
 					*/
 
-					echo sprintf("%-32s %s\n", "Version:", "[3] Name-based (MD5 hash)");
+					echo sprintf("%-32s %s\n", "Version:", "[0x3] Name-based (MD5 hash)");
 
 					$hash = str_replace('-', '', strtolower($uuid));
 
@@ -456,9 +500,9 @@ function uuid_info($uuid, $echo=true) {
 					$var16d = strtoupper(dechex(hexdec($hash[16]) & 0b0011 | 0b1100));
 					$hash[16] = '?'; // was partially overwritten by variant
 
+					$p = 16;
+					$hash = substr($hash,0,$p)."<abbr title=\"$var16a, $var16b, $var16c, or $var16d\">".substr($hash,$p,1).'</abbr>'.substr($hash,$p+1);
 					echo sprintf("%-32s %s\n", "MD5(Namespace+Subject):", "[0x$hash]");
-					echo sprintf("%-32s %s\n", "", "                   ^");
-					echo sprintf("%-32s %s\n", "", "                   $var16a, $var16b, $var16c, or $var16d");
 
 					break;
 				case 4:
@@ -471,7 +515,7 @@ function uuid_info($uuid, $echo=true) {
 					- 62 bit Random Low
 					*/
 
-					echo sprintf("%-32s %s\n", "Version:", "[4] Random");
+					echo sprintf("%-32s %s\n", "Version:", "[0x4] Random");
 
 					$rand_line1 = '';
 					$rand_line2 = '';
@@ -504,9 +548,10 @@ function uuid_info($uuid, $echo=true) {
 					$var16c = strtoupper(dechex(hexdec($rand_bytes[16]) & 0b0011 | 0b1000));
 					$var16d = strtoupper(dechex(hexdec($rand_bytes[16]) & 0b0011 | 0b1100));
 					$rand_bytes[16] = '?'; // was partially overwritten by variant
+
+					$p = 16;
+					$rand_bytes = substr($rand_bytes,0,$p)."<abbr title=\"$var16a, $var16b, $var16c, or $var16d\">".substr($rand_bytes,$p,1).'</abbr>'.substr($rand_bytes,$p+1);
 					echo sprintf("%-32s %s\n", "Random bytes:", "[0x$rand_bytes]");
-					echo sprintf("%-32s %s\n", "", "                   ^");
-					echo sprintf("%-32s %s\n", "", "                   $var16a, $var16b, $var16c, or $var16d");
 
 					break;
 				case 5:
@@ -519,7 +564,7 @@ function uuid_info($uuid, $echo=true) {
 					- 62 bit Hash Low
 					*/
 
-					echo sprintf("%-32s %s\n", "Version:", "[5] Name-based (SHA-1 hash)");
+					echo sprintf("%-32s %s\n", "Version:", "[0x5] Name-based (SHA-1 hash)");
 
 					$hash = str_replace('-', '', strtolower($uuid));
 
@@ -533,9 +578,9 @@ function uuid_info($uuid, $echo=true) {
 
 					$hash .= '????????'; // was cut off
 
+					$p = 16;
+					$hash = substr($hash,0,$p)."<abbr title=\"$var16a, $var16b, $var16c, or $var16d\">".substr($hash,$p,1).'</abbr>'.substr($hash,$p+1);
 					echo sprintf("%-32s %s\n", "SHA1(Namespace+Subject):", "[0x$hash]");
-					echo sprintf("%-32s %s\n", "", "                   ^");
-					echo sprintf("%-32s %s\n", "", "                   $var16a, $var16b, $var16c, or $var16d");
 
 					break;
 				case 7:
@@ -543,12 +588,20 @@ function uuid_info($uuid, $echo=true) {
 					Variant 1, Version 7 UUID
 					- 48 bit Unix Time in milliseconds
 					-  4 bit Version (fix 0x7)
-					- 12 bit Random
+					- 12 bit Data
 					-  2 bit Variant (fix 0b10)
-					- 62 bit Random
+					- 62 bit Data
+
+					Structure of data (74 bits):
+					- OPTIONAL : Sub-millisecond timestamp fraction (0-12 bits)
+					- OPTIONAL : Carefully seeded counter
+					- Random generated bits for any remaining space
+
+					Since we don't know if timestamp fraction or counters are implemented
+					(and if so, how many bits), we don't decode this information
 					*/
 
-					echo sprintf("%-32s %s\n", "Version:", "[7] Unix Epoch Time");
+					echo sprintf("%-32s %s\n", "Version:", "[0x7] Unix Epoch Time");
 
 					$timestamp = substr($uuid, 0, 12);
 
@@ -588,9 +641,10 @@ function uuid_info($uuid, $echo=true) {
 					$var16c = strtoupper(dechex(hexdec($rand_bytes[3]) & 0b0011 | 0b1000));
 					$var16d = strtoupper(dechex(hexdec($rand_bytes[3]) & 0b0011 | 0b1100));
 					$rand_bytes[3] = '?'; // was partially overwritten by variant
+
+					$p = 3;
+					$rand_bytes = substr($rand_bytes,0,$p)."<abbr title=\"$var16a, $var16b, $var16c, or $var16d\">".substr($rand_bytes,$p,1).'</abbr>'.substr($rand_bytes,$p+1);
 					echo sprintf("%-32s %s\n", "Random bytes:", "[0x$rand_bytes]");
-					echo sprintf("%-32s %s\n", "", "      ^");
-					echo sprintf("%-32s %s\n", "", "      $var16a, $var16b, $var16c, or $var16d");
 
 					// TODO: convert to and from Base32 CROCKFORD ULID (make 2 methods in uuid_utils.inc.php)
 					// e.g. ULID: 01GCZ05N3JFRKBRWKNGCQZGP44
@@ -600,14 +654,14 @@ function uuid_info($uuid, $echo=true) {
 				case 8:
 					/*
 					Variant 1, Version 8 UUID
-					- 48 bit Custom data
+					- 48 bit Custom data [Block 1+2]
 					-  4 bit Version (fix 0x8)
-					- 12 bit Custom data
+					- 12 bit Custom data [Block 3]
 					-  2 bit Variant (fix 0b10)
-					- 62 bit Custom data
+					- 62 bit Custom data [Block 4+5]
 					*/
 
-					echo sprintf("%-32s %s\n", "Version:", "[8] Custom implementation");
+					echo sprintf("%-32s %s\n", "Version:", "[0x8] Custom implementation");
 
 					$custom_data = substr($uuid,0,12).substr($uuid,13); // exclude version nibble
 					$custom_data[15] = dechex(hexdec($custom_data[15]) & 0b0011); // nibble was partially overwritten by variant
@@ -623,15 +677,147 @@ function uuid_info($uuid, $echo=true) {
 					$custom_block4[0] = dechex(hexdec($custom_block4[0]) & 0b0011); // remove variant
 
 					echo sprintf("%-32s %s\n", "Custom data:", "[0x$custom_data]");
-					echo sprintf("%-32s %s\n", "Custom block1 (32 bit):", "[0x$custom_block1]");
-					echo sprintf("%-32s %s\n", "Custom block2 (16 bit):", "[0x$custom_block2]");
-					echo sprintf("%-32s %s\n", "Custom block3 (12 bit):", "[0x$custom_block3]");
-					echo sprintf("%-32s %s\n", "Custom block4 (14 bit):", "[0x$custom_block4]");
-					echo sprintf("%-32s %s\n", "Custom block5 (48 bit):", "[0x$custom_block5]");
+					echo sprintf("%-32s %s\n", "Custom data block1 (32 bit):", "[0x$custom_block1]");
+					echo sprintf("%-32s %s\n", "Custom data block2 (16 bit):", "[0x$custom_block2]");
+					echo sprintf("%-32s %s\n", "Custom data block3 (12 bit):", "[0x$custom_block3]");
+					echo sprintf("%-32s %s\n", "Custom data block4 (14 bit):", "[0x$custom_block4]");
+					echo sprintf("%-32s %s\n", "Custom data block5 (48 bit):", "[0x$custom_block5]");
+
+					// START: Check if Custom UUIDv8 is likely an OIDplus 2.0 Custom UUID
+
+					$oidplus_systemid_hex = $custom_block1;
+					$oidplus_systemid_int = hexdec($oidplus_systemid_hex); // 31 bit hash of public key
+					$oidplus_systemid_valid = hexdec($custom_block1) < 0x80000000;
+
+					$oidplus_creation_hex = $custom_block2;
+					$oidplus_creation_int = hexdec($oidplus_creation_hex); // days since 1 January 1970, or 0 if unknown
+					//$oidplus_creation_valid = ($oidplus_creation_int >= 14610/*1 Jan 2010*/) && ($oidplus_creation_int <= floor(time()/24/60/60)/*Today*/);
+					$oidplus_creation_unknown = $oidplus_creation_int == 0;
+
+					$oidplus_reserved_hex = $custom_block3;
+					$oidplus_reserved_int = hexdec($oidplus_reserved_hex);
+
+					$oidplus_namespace_hex = $custom_block4;
+					$oidplus_namespace_int = hexdec($oidplus_namespace_hex);
+
+					$oidplus_data_hex = $custom_block5;
+					$oidplus_data_int = (PHP_INT_SIZE == 4) ? gmp_strval(gmp_init($oidplus_data_hex,16),10) : hexdec($custom_block5);
+
+					if ($oidplus_systemid_valid && ($oidplus_reserved_int == 0)) {
+						if (($oidplus_namespace_int == 0) && $oidplus_creation_unknown && (strtolower($oidplus_data_hex) == '1890afd80709')) {
+							// System GUID, e.g. 6e932dd7-0000-8000-8000-1890afd80709
+							echo "\n<u>Interpretation of <a href=\"https://github.com/danielmarschall/oidplus/blob/master/doc/oidplus_custom_guid.md\">OIDplus 2.0 Custom UUID</a></u>\n\n";
+							echo sprintf("%-32s %s\n", "System ID:", "[0x$oidplus_systemid_hex] ".$oidplus_systemid_int);
+							echo sprintf("%-32s %s\n", "Creation time:", "[0x$oidplus_creation_hex] ".($oidplus_creation_unknown ? 'Unknown' : date('Y-m-d', $oidplus_creation_int*24*60*60))); /**@phpstan-ignore-line*/
+							echo sprintf("%-32s %s\n", "Reserved:", "[0x$oidplus_reserved_hex]");
+							echo sprintf("%-32s %s\n", "Namespace:", "[0x$oidplus_namespace_hex] $oidplus_namespace_int=System");
+							echo sprintf("%-32s %s\n", "Data (empty string hash):", "[0x$oidplus_data_hex] SHA1('') = ????????????????????????????$oidplus_data_hex");
+						}
+						else if (($oidplus_namespace_int == 1) && $oidplus_creation_unknown) {
+							// User GUID, e.g. 6e932dd7-0000-8000-8001-2938f50e857e (User), 6e932dd7-0000-8000-8001-000000000000 (Admin)
+							echo "\n<u>Interpretation of <a href=\"https://github.com/danielmarschall/oidplus/blob/master/doc/oidplus_custom_guid.md\">OIDplus 2.0 Custom UUID</a></u>\n\n";
+							echo sprintf("%-32s %s\n", "System ID:", "[0x$oidplus_systemid_hex] ".$oidplus_systemid_int);
+							echo sprintf("%-32s %s\n", "Creation time:", "[0x$oidplus_creation_hex] ".($oidplus_creation_unknown ? 'Unknown' : date('Y-m-d', $oidplus_creation_int*24*60*60)));  /**@phpstan-ignore-line*/
+							echo sprintf("%-32s %s\n", "Reserved:", "[0x$oidplus_reserved_hex]");
+							echo sprintf("%-32s %s\n", "Namespace:", "[0x$oidplus_namespace_hex] $oidplus_namespace_int=User");
+							if ($oidplus_data_int == 0) {
+								echo sprintf("%-32s %s\n", "Data (Username):", "[0x$oidplus_data_hex] 0=Admin");
+							} else {
+								echo sprintf("%-32s %s\n", "Data (Username):", "[0x$oidplus_data_hex] SHA1(UserName) = ????????????????????????????$oidplus_data_hex");
+							}
+						}
+						else if (($oidplus_namespace_int == 2)/* && $oidplus_creation_valid*/) {
+							// Log entry GUID, e.g. 6e932dd7-458c-8000-8002-0000000004d2
+							echo "\n<u>Interpretation of <a href=\"https://github.com/danielmarschall/oidplus/blob/master/doc/oidplus_custom_guid.md\">OIDplus 2.0 Custom UUID</a></u>\n\n";
+							echo sprintf("%-32s %s\n", "System ID:", "[0x$oidplus_systemid_hex] ".$oidplus_systemid_int);
+							echo sprintf("%-32s %s\n", "Creation time:", "[0x$oidplus_creation_hex] ".($oidplus_creation_unknown ? 'Unknown' : date('Y-m-d', $oidplus_creation_int*24*60*60)));
+							echo sprintf("%-32s %s\n", "Reserved:", "[0x$oidplus_reserved_hex]");
+							echo sprintf("%-32s %s\n", "Namespace:", "[0x$oidplus_namespace_hex] $oidplus_namespace_int=Log Entry");
+							echo sprintf("%-32s %s\n", "Data (Sequence number):", "[0x$oidplus_data_hex] $oidplus_data_int");
+						}
+						else if (($oidplus_namespace_int == 3) && $oidplus_creation_unknown) {
+							// Configuration entry GUID, e.g. 6e932dd7-0000-8000-8003-f14dda42862a
+							echo "\n<u>Interpretation of <a href=\"https://github.com/danielmarschall/oidplus/blob/master/doc/oidplus_custom_guid.md\">OIDplus 2.0 Custom UUID</a></u>\n\n";
+							echo sprintf("%-32s %s\n", "System ID:", "[0x$oidplus_systemid_hex] ".$oidplus_systemid_int);
+							echo sprintf("%-32s %s\n", "Creation time:", "[0x$oidplus_creation_hex] ".($oidplus_creation_unknown ? 'Unknown' : date('Y-m-d', $oidplus_creation_int*24*60*60))); /**@phpstan-ignore-line*/
+							echo sprintf("%-32s %s\n", "Reserved:", "[0x$oidplus_reserved_hex]");
+							echo sprintf("%-32s %s\n", "Namespace:", "[0x$oidplus_namespace_hex] $oidplus_namespace_int=Configuration Entry");
+							echo sprintf("%-32s %s\n", "Data (Setting name hash):", "[0x$oidplus_data_hex] SHA1(SettingName) = ????????????????????????????$oidplus_data_hex");
+						}
+						else if ($oidplus_namespace_int == 4) {
+							// ASN.1 Alpahnumeric identifier GUID, e.g. 6e932dd7-0000-8000-8004-208ded8a3f8f
+							echo "\n<u>Interpretation of <a href=\"https://github.com/danielmarschall/oidplus/blob/master/doc/oidplus_custom_guid.md\">OIDplus 2.0 Custom UUID</a></u>\n\n";
+							echo sprintf("%-32s %s\n", "System ID:", "[0x$oidplus_systemid_hex] ".$oidplus_systemid_int);
+							echo sprintf("%-32s %s\n", "Creation time:", "[0x$oidplus_creation_hex] ".($oidplus_creation_unknown ? 'Unknown' : date('Y-m-d', $oidplus_creation_int*24*60*60)));
+							echo sprintf("%-32s %s\n", "Reserved:", "[0x$oidplus_reserved_hex]");
+							echo sprintf("%-32s %s\n", "Namespace:", "[0x$oidplus_namespace_hex] $oidplus_namespace_int=ASN.1 Alphanumeric ID");
+							$oidplus_data_24hi_hex = substr($oidplus_data_hex, 0, 6);
+							$oidplus_data_24lo_hex = substr($oidplus_data_hex, 6, 6);
+							echo sprintf("%-32s %s\n", "Data (OID hash):", "[0x$oidplus_data_24hi_hex] SHA1(OID) = ????????????????????????????$oidplus_data_24hi_hex");
+							echo sprintf("%-32s %s\n", "Data (Name hash):", "[0x$oidplus_data_24lo_hex] SHA1(AlphaNumId) = ????????????????????????????$oidplus_data_24lo_hex");
+						}
+						else if ($oidplus_namespace_int == 5) {
+							// Unicode Label entry GUID, e.g. 6e932dd7-0000-8000-8005-208dedaf9a96
+							echo "\n<u>Interpretation of <a href=\"https://github.com/danielmarschall/oidplus/blob/master/doc/oidplus_custom_guid.md\">OIDplus 2.0 Custom UUID</a></u>\n\n";
+							echo sprintf("%-32s %s\n", "System ID:", "[0x$oidplus_systemid_hex] ".$oidplus_systemid_int);
+							echo sprintf("%-32s %s\n", "Creation time:", "[0x$oidplus_creation_hex] ".($oidplus_creation_unknown ? 'Unknown' : date('Y-m-d', $oidplus_creation_int*24*60*60)));
+							echo sprintf("%-32s %s\n", "Reserved:", "[0x$oidplus_reserved_hex]");
+							echo sprintf("%-32s %s\n", "Namespace:", "[0x$oidplus_namespace_hex] $oidplus_namespace_int=Unicode Label");
+							$oidplus_data_24hi_hex = substr($oidplus_data_hex, 0, 6);
+							$oidplus_data_24lo_hex = substr($oidplus_data_hex, 6, 6);
+							echo sprintf("%-32s %s\n", "Data (OID hash):", "[0x$oidplus_data_24hi_hex] SHA1(OID) = ????????????????????????????$oidplus_data_24hi_hex");
+							echo sprintf("%-32s %s\n", "Data (Name hash):", "[0x$oidplus_data_24lo_hex] SHA1(UnicodeLabel) = ????????????????????????????$oidplus_data_24lo_hex");
+						}
+						else if (($oidplus_namespace_int >= 6) && ($oidplus_namespace_int <= 0xF)) {
+							// System reserved
+							echo "\n<u>Interpretation of <a href=\"https://github.com/danielmarschall/oidplus/blob/master/doc/oidplus_custom_guid.md\">OIDplus 2.0 Custom UUID</a></u>\n\n";
+							echo sprintf("%-32s %s\n", "System ID:", "[0x$oidplus_systemid_hex] ".$oidplus_systemid_int);
+							echo sprintf("%-32s %s\n", "Creation time:", "[0x$oidplus_creation_hex] ".($oidplus_creation_unknown ? 'Unknown' : date('Y-m-d', $oidplus_creation_int*24*60*60)));
+							echo sprintf("%-32s %s\n", "Reserved:", "[0x$oidplus_reserved_hex]");
+							echo sprintf("%-32s %s\n", "Namespace:", "[0x$oidplus_namespace_hex] $oidplus_namespace_int=Unknown (System Reserved)");
+							echo sprintf("%-32s %s\n", "Data (Setting name hash):", "[0x$oidplus_data_hex] Unknown");
+						}
+						else if ($oidplus_namespace_int > 0xF) {
+							// Information Object GUID, e.g. 6e932dd7-458c-8000-b9e9-c1e3894d1105
+							$known_objecttype_plugins = array(
+								// Latest list here: https://github.com/danielmarschall/oidplus/blob/master/doc/oidplus_custom_guid.md
+								'1.3.6.1.4.1.37476.2.5.2.4.8.1' => 'doi (ViaThinkSoft plugin)',
+								'1.3.6.1.4.1.37476.2.5.2.4.8.2' => 'gs1 (ViaThinkSoft plugin)',
+								'1.3.6.1.4.1.37476.2.5.2.4.8.3' => 'guid (ViaThinkSoft plugin)',
+								'1.3.6.1.4.1.37476.2.5.2.4.8.4' => 'ipv4 (ViaThinkSoft plugin)',
+								'1.3.6.1.4.1.37476.2.5.2.4.8.5' => 'ipv6 (ViaThinkSoft plugin)',
+								'1.3.6.1.4.1.37476.2.5.2.4.8.6' => 'java (ViaThinkSoft plugin)',
+								'1.3.6.1.4.1.37476.2.5.2.4.8.7' => 'oid (ViaThinkSoft plugin)',
+								'1.3.6.1.4.1.37476.2.5.2.4.8.8' => 'other (ViaThinkSoft plugin)',
+								'1.3.6.1.4.1.37476.2.5.2.4.8.9' => 'domain (ViaThinkSoft plugin)',
+								'1.3.6.1.4.1.37476.2.5.2.4.8.10' => 'fourcc (ViaThinkSoft plugin)',
+								'1.3.6.1.4.1.37476.2.5.2.4.8.11' => 'aid (ViaThinkSoft plugin)',
+								'1.3.6.1.4.1.37476.2.5.2.4.8.12' => 'php (ViaThinkSoft plugin)',
+								'1.3.6.1.4.1.37476.2.5.2.4.8.13' => 'mac (ViaThinkSoft plugin)',
+								'1.3.6.1.4.1.37553.8.1.8.8.53354196964.27255728261' => 'circuit (Frdlweb plugin)',
+								'1.3.6.1.4.1.37476.9000.108.19361.856' => 'ns (Frdlweb plugin)',
+								'1.3.6.1.4.1.37553.8.1.8.8.53354196964.32927' => 'pen (Frdlweb plugin)',
+								'1.3.6.1.4.1.37553.8.1.8.8.53354196964.39870' => 'uri (Frdlweb plugin)',
+								'1.3.6.1.4.1.37553.8.1.8.8.53354196964.1958965295' => 'web+fan (Frdlweb plugin)'
+							);
+							$namespace_desc = 'Unknown object type';
+							foreach ($known_objecttype_plugins as $oid => $name) {
+								if ((hexdec(substr(sha1($oid), -4)) & 0x3fff) == $oidplus_namespace_int) $namespace_desc = "$oid = $name";
+							}
+							echo "\n<u>Interpretation of <a href=\"https://github.com/danielmarschall/oidplus/blob/master/doc/oidplus_custom_guid.md\">OIDplus 2.0 Custom UUID</a></u>\n\n";
+							echo sprintf("%-32s %s\n", "System ID:", "[0x$oidplus_systemid_hex] ".$oidplus_systemid_int);
+							echo sprintf("%-32s %s\n", "Creation time:", "[0x$oidplus_creation_hex] ".($oidplus_creation_unknown ? 'Unknown' : date('Y-m-d', $oidplus_creation_int*24*60*60)));
+							echo sprintf("%-32s %s\n", "Reserved:", "[0x$oidplus_reserved_hex]");
+							echo sprintf("%-32s %s\n", "Namespace (Obj.type OID hash):", "[0x$oidplus_namespace_hex] $namespace_desc");
+							echo sprintf("%-32s %s\n", "Data (Object name hash):", "[0x$oidplus_data_hex] SHA1(ObjectName) = ????????????????????????????$oidplus_data_hex");
+						}
+					}
+
+					// END: OIDplus 2.0 Custom UUID Interpretation
 
 					break;
 				default:
-					echo sprintf("%-32s %s\n", "Version:", "[$version] Unknown");
+					echo sprintf("%-32s %s\n", "Version:", "[0x".dechex($version)."] Unknown");
 					break;
 			}
 
@@ -662,7 +848,8 @@ function uuid_canonize($uuid) {
 }
 
 function oid_to_uuid($oid) {
-	if (!is_uuid_oid($oid)) return false;
+	// TODO: Also support Non-2.25 base UUID-to-OID
+	if (!is_uuid_oid($oid,true)) return false;
 
 	if (substr($oid,0,1) == '.') {
 		$oid = substr($oid, 1);
@@ -684,6 +871,7 @@ function oid_to_uuid($oid) {
 }
 
 function is_uuid_oid($oid, $only_allow_root=false) {
+	// TODO: Also support Non-2.25 base UUID-to-OID
 	if (substr($oid,0,1) == '.') $oid = substr($oid, 1); // remove leading dot
 
 	$ary = explode('.', $oid);
@@ -710,12 +898,49 @@ function is_uuid_oid($oid, $only_allow_root=false) {
 	return true;
 }
 
-function uuid_to_oid($uuid) {
+function uuid_to_oid($uuid, $base='2.25') {
 	if (!uuid_valid($uuid)) return false;
+	#$base = oid_sanitize($base);
 
 	$uuid = str_replace(array('-', '{', '}'), '', $uuid);
-	$x = gmp_init($uuid, 16);
-	return '2.25.'.gmp_strval($x, 10);
+
+	// Information about Microsoft and Waterjuice UUID-OID: https://waterjuiceweb.wordpress.com/2019/09/24/guids-to-oids/
+
+	if ($base == '2.25') {
+		$x = gmp_init($uuid, 16);
+		return $base.'.'.gmp_strval($x, 10);
+	} else if ($base == '1.2.840.113556.1.8000.2554') {
+		return $base.'.'.
+			gmp_strval(gmp_init(substr($uuid,0,4),16),10).'.'.
+			gmp_strval(gmp_init(substr($uuid,4,4),16),10).'.'.
+			gmp_strval(gmp_init(substr($uuid,8,4),16),10).'.'.
+			gmp_strval(gmp_init(substr($uuid,12,4),16),10).'.'.
+			gmp_strval(gmp_init(substr($uuid,16,4),16),10).'.'.
+			gmp_strval(gmp_init(substr($uuid,20,6),16),10).'.'.
+			gmp_strval(gmp_init(substr($uuid,26,6),16),10);
+	} else if ($base == '1.3.6.1.4.1.54392.1') {
+		return $base.'.'.
+			gmp_strval(gmp_init(substr($uuid,0,16),16),10).'.'.
+			gmp_strval(gmp_init(substr($uuid,16,16),16),10);
+	} else if ($base == '1.3.6.1.4.1.54392.2') {
+		return $base.'.'.
+			gmp_strval(gmp_init(substr($uuid,0,8),16),10).'.'.
+			gmp_strval(gmp_init(substr($uuid,8,8),16),10).'.'.
+			gmp_strval(gmp_init(substr($uuid,16,8),16),10).'.'.
+			gmp_strval(gmp_init(substr($uuid,24,8),16),10);
+	} else if ($base == '1.3.6.1.4.1.54392.3') {
+		return $base.'.'.
+			gmp_strval(gmp_init(substr($uuid,0,4),16),10).'.'.
+			gmp_strval(gmp_init(substr($uuid,4,4),16),10).'.'.
+			gmp_strval(gmp_init(substr($uuid,8,4),16),10).'.'.
+			gmp_strval(gmp_init(substr($uuid,12,4),16),10).'.'.
+			gmp_strval(gmp_init(substr($uuid,16,4),16),10).'.'.
+			gmp_strval(gmp_init(substr($uuid,20,4),16),10).'.'.
+			gmp_strval(gmp_init(substr($uuid,24,4),16),10).'.'.
+			gmp_strval(gmp_init(substr($uuid,28,4),16),10);
+	} else {
+		throw new Exception("Unsupported UUID-to-OID base");
+	}
 }
 
 function uuid_numeric_value($uuid) {
@@ -802,7 +1027,7 @@ function gen_uuid_timebased($force_php_implementation=false) {
 		$uuid['time_low'] = gmp_and($time, gmp_init('ffffffff',16));
 		$high = gmp_shiftr($time,32);
 		$uuid['time_mid'] = gmp_and($high, gmp_init('ffff',16));
-		$uuid['time_hi'] = intval(gmp_and(gmp_shiftr($high,16),gmp_init('fff',16)),10) | (1/*TimeBased*/ << 12);
+		$uuid['time_hi'] = gmp_intval(gmp_and(gmp_shiftr($high,16),gmp_init('fff',16))) | (1/*TimeBased*/ << 12);
 	} else {
 		$time = ($tp['sec'] * 10000000) + ($tp['usec'] * 10) + 0x01B21DD213814000;
 		$uuid['time_low'] = $time & 0xffffffff;
@@ -830,7 +1055,13 @@ function gen_uuid_timebased($force_php_implementation=false) {
 		}
 	} else {
 		// If we cannot get a MAC address, then generate a random AAI
-		$uuid['node'] = explode('-', gen_aai(48, false));
+		// RFC 4122 requires the multicast bit to be set, to make sure
+		// that a UUID from a system with network card never conflicts
+		// with a UUID from a system without network ard.
+		// We are additionally defining the other 3 bits as AAI,
+		// to avoid that we are misusing the CID or OUI from other vendors
+		// if we would create multicast ELI (based on CID) or EUI (based on OUI).
+		$uuid['node'] = explode('-', gen_aai(48, true/*Multicast*/));
 		$uuid['node'] = array_map('hexdec', $uuid['node']);
 	}
 
@@ -843,86 +1074,6 @@ function gen_uuid_timebased($force_php_implementation=false) {
 		$uuid['clock_seq_hi'], $uuid['clock_seq_low'],
 		$uuid['node'][0], $uuid['node'][1], $uuid['node'][2],
 		$uuid['node'][3], $uuid['node'][4], $uuid['node'][5]);
-}
-function get_mac_address() {
-	static $detected_mac = false;
-
-	if ($detected_mac !== false) { // false NOT null!
-		return $detected_mac;
-	}
-
-	// TODO: This method get_mac_address() should actually be part of mac_utils.inc.php, but we need it
-	//       here, and mac_utils.inc.php shall only be optional. What to do?
-	if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-		// Windows
-		$cmds = array(
-			"ipconfig /all", // faster
-			"getmac"
-		);
-		foreach ($cmds as $cmd) {
-			$out = array();
-			$ec = -1;
-			exec($cmd, $out, $ec);
-			if ($ec == 0) {
-				$out = implode("\n",$out);
-				$m = array();
-				if (preg_match("/([0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2})/ismU", $out, $m)) {
-					$detected_mac = strtolower($m[1]);
-					return $detected_mac;
-				}
-			}
-		}
-	} else if (strtoupper(PHP_OS) == 'DARWIN') {
-		// Mac OS X
-		$cmds = array(
-			"networksetup -listallhardwareports 2>/dev/null",
-			"netstat -i 2>/dev/null"
-		);
-		foreach ($cmds as $cmd) {
-			$out = array();
-			$ec = -1;
-			exec($cmd, $out, $ec);
-			if ($ec == 0) {
-				$out = implode("\n",$out);
-				$m = array();
-				if (preg_match("/([0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2})/ismU", $out, $m)) {
-					$detected_mac = $m[1];
-					return $detected_mac;
-				}
-			}
-		}
-	} else {
-		// Linux
-		$addresses = @glob('/sys/class/net/'.'*'.'/address');
-		foreach ($addresses as $x) {
-			if (!strstr($x,'/lo/')) {
-				$detected_mac = trim(file_get_contents($x));
-				if (substr(mac_type($detected_mac),0,6) == 'EUI-48') {
-					return $detected_mac;
-				}
-			}
-		}
-		$cmds = array(
-			"netstat -ie 2>/dev/null",
-			"ifconfig 2>/dev/null" // only available for root (because it is in sbin)
-		);
-		foreach ($cmds as $cmd) {
-			$out = array();
-			$ec = -1;
-			exec($cmd, $out, $ec);
-			if ($ec == 0) {
-				$out = implode("\n",$out);
-				$m = array();
-				if (preg_match("/([0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2})/ismU", $out, $m)) {
-					$detected_mac = $m[1];
-					return $detected_mac;
-				}
-			}
-		}
-	}
-
-	$detected_mac = null;
-	return $detected_mac;
 }
 
 # --------------------------------------
@@ -938,11 +1089,11 @@ function gen_uuid_v2($domain, $id) {
 function gen_uuid_dce($domain, $id) {
 	if (($domain ?? '') === '') throw new Exception("Domain ID missing");
 	if (!is_numeric($domain)) throw new Exception("Invalid Domain ID");
-	if (($domain < 0) || ($domain > 255)) throw new Exception("Domain ID must be in range 0..255");
+	if (($domain < 0) || ($domain > 0xFF)) throw new Exception("Domain ID must be in range 0..255");
 
 	if (($id ?? '') === '') throw new Exception("ID value missing");
 	if (!is_numeric($id)) throw new Exception("Invalid ID value");
-	if (($id < 0) || ($id > 4294967295)) throw new Exception("ID value must be in range 0..4294967295");
+	if (($id < 0) || ($id > 0xFFFFFFFF)) throw new Exception("ID value must be in range 0..4294967295");
 
 	# Start with a version 1 UUID
 	$uuid = gen_uuid_timebased();
@@ -996,12 +1147,12 @@ function gen_uuid_random() {
 	# On Windows: Requires
 	#    extension_dir = "C:\php-8.0.3-nts-Win32-vs16-x64\ext"
 	#    extension=com_dotnet
-	// TODO: can we trust that com_create_guid() always outputs UUIDv4?
-	/*
 	if (function_exists('com_create_guid')) {
-		return strtolower(trim(com_create_guid(), '{}'));
+		$uuid = trim(com_create_guid(), '{}');
+		if (uuid_version($uuid) === '4') { // <-- just to make 100% sure that Windows's CoCreateGuid() did output UUIDv4
+			return strtolower($uuid);
+		}
 	}
-	*/
 
 	# On Debian: apt-get install php-uuid
 	# extension_loaded('uuid')
@@ -1019,27 +1170,39 @@ function gen_uuid_random() {
 	}
 
 	if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
+		# On Debian Jessie: UUID V4 (Random)
+		if (file_exists($uuidv4_file = '/proc/sys/kernel/random/uuid')) {
+			$uuid = file_get_contents($uuidv4_file);
+			if (uuid_version($uuid) === '4') { // <-- just to make 100% sure that it did output UUIDv4
+				return $uuid;
+			}
+		}
+
 		# On Debian: apt-get install uuid-runtime
 		$out = array();
 		$ec = -1;
 		exec('uuidgen -r 2>/dev/null', $out, $ec);
 		if ($ec == 0) return trim($out[0]);
-
-		# On Debian Jessie: UUID V4 (Random)
-		if (file_exists('/proc/sys/kernel/random/uuid')) {
-			return trim(file_get_contents('/proc/sys/kernel/random/uuid'));
-		}
 	}
 
 	# Make the UUID by ourselves
-	# Source: http://rogerstringer.com/2013/11/15/generate-uuids-php
-	return sprintf( '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-		_random_int( 0, 0xffff ), _random_int( 0, 0xffff ),
-		_random_int( 0, 0xffff ),
-		_random_int( 0, 0x0fff ) | 0x4000,
-		_random_int( 0, 0x3fff ) | 0x8000,
-		_random_int( 0, 0xffff ), _random_int( 0, 0xffff ), _random_int( 0, 0xffff )
-	);
+
+	if (function_exists('openssl_random_pseudo_bytes')) {
+		// Source: https://www.php.net/manual/en/function.com-create-guid.php#119168
+		$data = openssl_random_pseudo_bytes(16);
+		$data[6] = chr(ord($data[6]) & 0x0f | 0x40);    // set version to 0100
+		$data[8] = chr(ord($data[8]) & 0x3f | 0x80);    // set bits 6-7 to 10
+		return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+	} else {
+		// Source: http://rogerstringer.com/2013/11/15/generate-uuids-php
+		return sprintf( '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+			_random_int( 0, 0xffff ), _random_int( 0, 0xffff ),
+			_random_int( 0, 0xffff ),
+			_random_int( 0, 0x0fff ) | 0x4000,
+			_random_int( 0, 0x3fff ) | 0x8000,
+			_random_int( 0, 0xffff ), _random_int( 0, 0xffff ), _random_int( 0, 0xffff )
+		);
+	}
 }
 
 # --------------------------------------
@@ -1116,31 +1279,63 @@ function uuid1_to_uuid6($hex) {
 // Variant 1, Version 7 (Unix Epoch) UUID
 # --------------------------------------
 
-function gen_uuid_v7() {
-	return gen_uuid_unix_epoch();
+function gen_uuid_v7(int $num_ms_frac_bits=12) {
+	return gen_uuid_unix_epoch($num_ms_frac_bits);
 }
-function gen_uuid_unix_epoch() {
-	// Start with an UUIDv4
-	$uuid = gen_uuid_random();
+function gen_uuid_unix_epoch(int $num_ms_frac_bits=12) {
+	$uuid_nibbles = '';
 
-	// Add the timestamp
-	usleep(1000); // Wait 1ms, to make sure that the time part changes if multiple UUIDs are generated
+	// Add the timestamp (milliseconds Unix)
 	if (function_exists('gmp_init')) {
 		list($ms,$sec) = explode(' ', microtime(false));
 		$sec = gmp_init($sec, 10);
 		$ms = gmp_init(substr($ms,2,3), 10);
 		$unix_ts = gmp_strval(gmp_add(gmp_mul($sec, '1000'), $ms),16);
 	} else {
-		$unix_ts = dechex((int)round(microtime(true)*1000));
+		$unix_ts = dechex((int)ceil(microtime(true)*1000));
 	}
 	$unix_ts = str_pad($unix_ts, 12, '0', STR_PAD_LEFT);
-	for ($i=0;$i<8;$i++) $uuid[$i] = substr($unix_ts, $i, 1);
-	for ($i=0;$i<4;$i++) $uuid[9+$i] = substr($unix_ts, 8+$i, 1);
+	$uuid_nibbles = $unix_ts;
 
-	// set version
-	$uuid[14] = '7';
+	// Version = 7
+	$uuid_nibbles .= '7';
 
-	return $uuid;
+	// Optional: millisecond fraction (max 12 bits)
+	if (($num_ms_frac_bits < 0) || ($num_ms_frac_bits > 12)) throw new Exception("Invalid msec frac bits (must be 0..12)");
+	$resolution_ns = 1000000 / pow(2,$num_ms_frac_bits);
+	if ($num_ms_frac_bits > 0) {
+		$seconds_fraction = (float)explode(' ',microtime(false))[0]; // <sec=0>,<msec>
+
+		$ms_fraction = $seconds_fraction * 1000; // <msec>,<us>
+		$ms_fraction -= floor($ms_fraction); // <msec=0>,<us>
+
+		$ns_fraction = $ms_fraction * 1000000; // <ns>
+		$val = (int)ceil($ns_fraction / $resolution_ns);
+
+		// Currently, for the output we only allow frac bits 0, 4, 8, 12 (0-3 nibbles),
+		// since UUIDs are usually sorted in their hex notation, and one of the main
+		// reasons for using the sub-millisecond fractions it to increase monotonicity
+		$num_nibbles = (int)ceil($num_ms_frac_bits/4);
+		$uuid_nibbles .= str_pad(dechex($val), $num_nibbles, '0', STR_PAD_LEFT);
+	}
+
+	// TODO Not implemented: Optional counter (to be defined as parameter to this method)
+	// The counter bits need to be spread before and after the variant bits
+
+	// Fill with random bits (and the variant bits)
+	$uuid = gen_uuid_random();
+	$uuid = str_replace('-', '', $uuid);
+	for ($i=0; $i<strlen($uuid_nibbles); $i++) $uuid[$i] = $uuid_nibbles[$i];
+
+	// Wait to make sure that the time part changes if multiple UUIDs are generated
+	if (time_nanosleep(0,(int)ceil($resolution_ns)) !== true) usleep((int)ceil($resolution_ns/1000));
+
+	// Output
+	return substr($uuid,  0, 8).'-'.
+	       substr($uuid,  8, 4).'-'.
+	       substr($uuid, 12, 4).'-'.
+	       substr($uuid, 16, 4).'-'.
+	       substr($uuid, 20, 12);
 }
 
 # --------------------------------------
@@ -1169,6 +1364,51 @@ function gen_uuid_custom($block1_32bit, $block2_16bit, $block3_12bit, $block4_14
 	return strtolower($block1.'-'.$block2.'-'.$block3.'-'.$block4.'-'.$block5);
 }
 
+function gen_uuid_v8_namebased($hash_algo, $namespace_uuid, $name) {
+	if (($hash_algo ?? '') === '') throw new Exception("Hash algorithm argument missing");
+
+	if (($namespace_uuid ?? '') === '') throw new Exception("Namespace UUID missing");
+	if (!uuid_valid($namespace_uuid)) throw new Exception("Invalid namespace UUID '$namespace_uuid'");
+
+	$uuid1 = uuid_valid($hash_algo) ? hex2bin(str_replace('-','',uuid_canonize($hash_algo))) : ''; // old "hash space" concept (dropped in Internet Draft 12)
+	$uuid2 = hex2bin(str_replace('-','',uuid_canonize($namespace_uuid)));
+	$payload = $uuid1 . $uuid2 . $name;
+
+	if (uuid_valid($hash_algo)) {
+		if (uuid_equal($hash_algo, '59031ca3-fbdb-47fb-9f6c-0f30e2e83145')) $hash_algo = 'sha224';
+		if (uuid_equal($hash_algo, '3fb32780-953c-4464-9cfd-e85dbbe9843d')) $hash_algo = 'sha256';
+		if (uuid_equal($hash_algo, 'e6800581-f333-484b-8778-601ff2b58da8')) $hash_algo = 'sha384';
+		if (uuid_equal($hash_algo, '0fde22f2-e7ba-4fd1-9753-9c2ea88fa3f9')) $hash_algo = 'sha512';
+		if (uuid_equal($hash_algo, '003c2038-c4fe-4b95-a672-0c26c1b79542')) $hash_algo = 'sha512/224';
+		if (uuid_equal($hash_algo, '9475ad00-3769-4c07-9642-5e7383732306')) $hash_algo = 'sha512/256';
+		if (uuid_equal($hash_algo, '9768761f-ac5a-419e-a180-7ca239e8025a')) $hash_algo = 'sha3-224';
+		if (uuid_equal($hash_algo, '2034d66b-4047-4553-8f80-70e593176877')) $hash_algo = 'sha3-256';
+		if (uuid_equal($hash_algo, '872fb339-2636-4bdd-bda6-b6dc2a82b1b3')) $hash_algo = 'sha3-384';
+		if (uuid_equal($hash_algo, 'a4920a5d-a8a6-426c-8d14-a6cafbe64c7b')) $hash_algo = 'sha3-512';
+		if (uuid_equal($hash_algo, '7ea218f6-629a-425f-9f88-7439d63296bb')) $hash_algo = 'shake128';
+		if (uuid_equal($hash_algo, '2e7fc6a4-2919-4edc-b0ba-7d7062ce4f0a')) $hash_algo = 'shake256';
+	}
+
+	if ($hash_algo == 'shake128') $hash = shake128($payload, 16/*min. required bytes*/, false);
+	else if ($hash_algo == 'shake256') $hash = shake256($payload, 16/*min. required bytes*/, false);
+	else $hash = hash($hash_algo, $payload, false);
+
+	if ($hash == null) {
+		throw new Exception("Unknown Hash Algorithm $hash_algo");
+	}
+
+	$hash = str_pad($hash, 32, '0', STR_PAD_RIGHT); // fill short hashes with zeros to the right
+
+	$hash[12] = '8'; // Set version: 8 = Custom
+	$hash[16] = dechex(hexdec($hash[16]) & 0b0011 | 0b1000); // Set variant to "0b10__" (RFC4122/DCE1.1)
+
+	return substr($hash,  0, 8).'-'.
+	       substr($hash,  8, 4).'-'.
+	       substr($hash, 12, 4).'-'.
+	       substr($hash, 16, 4).'-'.
+	       substr($hash, 20, 12);
+}
+
 # --------------------------------------
 
 // http://php.net/manual/de/function.hex2bin.php#113057
@@ -1194,4 +1434,20 @@ if (!function_exists('gmp_shiftr')) {
     function gmp_shiftr($x,$n) { // shift right
         return(gmp_div_q($x,gmp_pow(2,$n)));
     }
+}
+
+function shake128(string $msg, int $outputLength=512, bool $binary=false): string {
+	include_once __DIR__.'/SHA3.php';
+	$sponge = SHA3::init(SHA3::SHAKE128);
+	$sponge->absorb($msg);
+	$bin = $sponge->squeeze($outputLength);
+	return $binary ? $bin : bin2hex($bin);
+}
+
+function shake256(string $msg, int $outputLength=512, bool $binary=false): string {
+	include_once __DIR__.'/SHA3.php';
+	$sponge = SHA3::init(SHA3::SHAKE256);
+	$sponge->absorb($msg);
+	$bin = $sponge->squeeze($outputLength);
+	return $binary ? $bin : bin2hex($bin);
 }

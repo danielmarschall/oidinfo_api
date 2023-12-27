@@ -1064,3 +1064,85 @@ function mac_between(string $mac, string $low, string $high): bool {
 
 	return (gmp_cmp($mactest, $lowtest) >= 0) && (gmp_cmp($mactest, $hightest) <= 0);
 }
+
+/**
+ * Gets the current MAC address of the system
+ * @return string|false MAC address of the local system
+ */
+function get_mac_address() {
+	static $detected_mac = false;
+
+	if ($detected_mac !== false) { // false NOT null!
+		return $detected_mac;
+	}
+
+	if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+		// Windows
+		$cmds = array(
+			"ipconfig /all", // faster
+			"getmac"
+		);
+		foreach ($cmds as $cmd) {
+			$out = array();
+			$ec = -1;
+			exec($cmd, $out, $ec);
+			if ($ec == 0) {
+				$out = implode("\n",$out);
+				$m = array();
+				if (preg_match("/([0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2})/ismU", $out, $m)) {
+					$detected_mac = strtolower($m[1]);
+					return $detected_mac;
+				}
+			}
+		}
+	} else if (strtoupper(PHP_OS) == 'DARWIN') {
+		// Mac OS X
+		$cmds = array(
+			"networksetup -listallhardwareports 2>/dev/null",
+			"netstat -i 2>/dev/null"
+		);
+		foreach ($cmds as $cmd) {
+			$out = array();
+			$ec = -1;
+			exec($cmd, $out, $ec);
+			if ($ec == 0) {
+				$out = implode("\n",$out);
+				$m = array();
+				if (preg_match("/([0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2})/ismU", $out, $m)) {
+					$detected_mac = $m[1];
+					return $detected_mac;
+				}
+			}
+		}
+	} else {
+		// Linux
+		$addresses = @glob('/sys/class/net/'.'*'.'/address');
+		foreach ($addresses as $x) {
+			if (!strstr($x,'/lo/')) {
+				$detected_mac = trim(file_get_contents($x));
+				if (substr(mac_type($detected_mac),0,6) == 'EUI-48') {
+					return $detected_mac;
+				}
+			}
+		}
+		$cmds = array(
+			"netstat -ie 2>/dev/null",
+			"ifconfig 2>/dev/null" // only available for root (because it is in sbin)
+		);
+		foreach ($cmds as $cmd) {
+			$out = array();
+			$ec = -1;
+			exec($cmd, $out, $ec);
+			if ($ec == 0) {
+				$out = implode("\n",$out);
+				$m = array();
+				if (preg_match("/([0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2})/ismU", $out, $m)) {
+					$detected_mac = $m[1];
+					return $detected_mac;
+				}
+			}
+		}
+	}
+
+	return $detected_mac;
+}
