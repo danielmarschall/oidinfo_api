@@ -2,7 +2,7 @@
 
 -- Standard OID Illegality Rule Definition File
 -- by Daniel Marschall and Olivier Dubuisson
--- Revision: 30 January 2024
+-- Revision: 2 February 2024
 -- This file contains all oid-info.com rules as of 2018_09_18_illegal_oid_table.csv
 
 -- SYNTAX:
@@ -167,6 +167,7 @@
 -- CATEGORY: Misdefined
 0.4.0.0.1.3.2.6.*            -- The ETSI OID tree mistakenly displays child OIDs for application contexts which are indeed defined under OID {itu-t(0) identified-organization(4) etsi(0) mobileDomain(0) gsm-Network(1) applicationContext(0)}.
 1.3.6.1.4.1.43.29.10.0.*     -- These MIB traps are defined with an integer, not an OID, and often mis-interpreted as OID underneath a .0 sub-OID.
+1.3.6.1.4.1.43.29.4.0.*      -- These MIB traps are defined with an integer, not an OID, and often mis-interpreted as OID underneath a .0 sub-OID.
 
 -- CATEGORY: Misdefined in specifications
 1.2.840.113549.1.9.16.0.999  -- According to IETF RFC Errata 3866 ( https://www.rfc-editor.org/errata_search.php?eid=3866 ), the correct number is 49 and not 999 as wrongly specified in IETF RFC 6210
