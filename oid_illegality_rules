@@ -2,7 +2,7 @@
 
 -- Standard OID Illegality Rule Definition File
 -- by Daniel Marschall and Olivier Dubuisson
--- Revision: 16 February 2024
+-- Revision: 20 February 2024
 -- This file contains all oid-info.com rules as of 2018_09_18_illegal_oid_table.csv
 
 -- SYNTAX:
@@ -230,6 +230,8 @@
 1.3.6.1.4.1.23.2.8889       -- No such OID underneath {iso(1) identified-organization(3) dod(6) internet(1) private(4) enterprise(1) 23 mibDoc(2)}
 1.3.12.999                  -- Not assigned by Ecma International
 0.0.0                       -- Not a series of ITU-T Recommendations
+0.1.*                       -- 0.1 is undoubtedly (historically) a leaf.
+0.0.1.*                     -- 0.0.1 is not formally a leaf, but it is very unlikely that child OID would ever be allocated.
 0.3.18                      -- Not an assigned DNIC
 0.0.8.0                     -- Not an H-series ITU-T Recommendation
 0.0.23                      -- The W-series of ITU-T Recommendations does not exist
