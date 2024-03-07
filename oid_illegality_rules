@@ -2,7 +2,7 @@
 
 -- Standard OID Illegality Rule Definition File
 -- by Daniel Marschall and Olivier Dubuisson
--- Revision: 28 February 2024
+-- Revision: 07 March 2024
 -- This file contains all oid-info.com rules as of 2018_09_18_illegal_oid_table.csv
 
 -- SYNTAX:
@@ -256,5 +256,8 @@
 1.3.6.1.5.2.4.0             -- Not allocated by Kerberos version 2
 0.0.17.3303.(!127)          -- The only child OID underneath 0.0.17.3303 is 127
 1.3.6.1.4.1.6486.800.1.2.1.10.7.999  -- Correct OID seems to be 1.3.6.1.4.1.6486.800.1.2.1.10.7.1
+
+-- CATEGORY: Misc
+1.3.6.1.4.1.22812.4.1055053049057056.12.0  -- Correct OID is 2.16.840.1.113883.3.2296
 
 -- END OF FILE --
