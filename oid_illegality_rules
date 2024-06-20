@@ -2,7 +2,7 @@
 
 -- Standard OID Illegality Rule Definition File
 -- by Daniel Marschall and Olivier Dubuisson
--- Revision: 14 March 2024
+-- Revision: 20 June 2024
 -- This file contains all oid-info.com rules as of 2018_09_18_illegal_oid_table.csv
 
 -- SYNTAX:
@@ -137,6 +137,7 @@
 -- CATEGORY: Example OIDS
 2.999.*                   -- OID 2.999 is only used for creating (informal) examples, hence child OIDs do not need to be described in the OID repository, as the same child OID can be reused by someone else for a different purpose
 1.3.6.1.4.1.37476.9999.*  -- ViaThinkSoft example OID (obsolete in favor of 2.999)
+1.3.6.1.4.1.61117.9999.*  -- R74n Example OID
 
 -- CATEGORY: Illegal usage (hijacking / collission)
 1.3.6.1.2.1.1.7.*         -- Illegal redefintion of 1.3.6.1.2.1.1.7 (defined in IETF RFC 1213 without child nodes) by agilent-wanstats.mib as "sysServices"
@@ -145,6 +146,7 @@
 2.16.158.6                -- CHIEF Telecom Inc. (www.chief.com.tw) claims to use this OID but it is illegal because Taiwan non-government organizations are registered under {joint-iso-itu-t(2) country(16) tw(158) organization(1)}
 2.16.158.7                -- Organizations have OIDs under {joint-iso-itu-t(2) country(16) tw(158) organization(1)}
 1.3.6.1.4.1.(65665+)      -- There are illegal definitions of the arcs 65665, 76561 and 123456 found on the Internet.
+1.3.6.1.4.1.9.10.999      -- OID 1.3.6.1.4.1.9.10.999 cannot exist: There are different MODULE-IDENTITYs identified by this OID which looks like a temporary OID.
 
 -- CATEGORY: Definitions
 2.27.(128+)   -- Child OIDs are limited to 127 so that the OID can encode in 2 octets.
