@@ -2,8 +2,8 @@
 
 /*
  * OID-Info.com API for PHP
- * Copyright 2019-2022 Daniel Marschall, ViaThinkSoft
- * Version 2022-12-09
+ * Copyright 2019-2024 Daniel Marschall, ViaThinkSoft
+ * Version 2024-08-01
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,19 +47,19 @@ class OIDInfoAPI {
 	// "0" = OID does not exist
 	// "1" = OID does exist, but is not approved yet
 	// "2" = OID does exist and is accessible
-	/*private*/ const PING_IDX_EXISTS = 0;
+	private const PING_IDX_EXISTS = 0;
 
 	// Second digit of the ping result
 	// "-" = error
 	// "0" = The OID may not be created
 	// "1" = OID is not an illegal OID, and none of its ascendant is a leaf and its parent OID is not frozen
-	/*private*/ const PING_IDX_MAY_CREATE = 1;
+	private const PING_IDX_MAY_CREATE = 1;
 
-	/*private*/ const SOFT_CORRECT_BEHAVIOR_NONE = 0;
-	/*private*/ const SOFT_CORRECT_BEHAVIOR_LOWERCASE_BEGINNING = 1;
-	/*private*/ const SOFT_CORRECT_BEHAVIOR_ALL_POSSIBLE = 2;
+	public const SOFT_CORRECT_BEHAVIOR_NONE = 0;
+	public const SOFT_CORRECT_BEHAVIOR_LOWERCASE_BEGINNING = 1;
+	public const SOFT_CORRECT_BEHAVIOR_ALL_POSSIBLE = 2;
 
-	/*public*/ const DEFAULT_ILLEGALITY_RULE_FILE = __DIR__ . '/oid_illegality_rules';
+	public const DEFAULT_ILLEGALITY_RULE_FILE = __DIR__ . '/oid_illegality_rules';
 
 	# --- Part 1: "Ping API" for checking if OIDs are available or allowed to create
 
@@ -846,6 +846,7 @@ class OIDInfoAPI {
 			}
 
 			if ($rulefit && ($vararcs == $varsfit)) {
+				// echo "$oid is illegal because of rule $rule\n";
 				$illegal_root = implode('.', $illrootary);
 				return true; // is illegal
 			}
