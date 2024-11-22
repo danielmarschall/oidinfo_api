@@ -1,6 +1,6 @@
 // **************************************************
-// ** OID CSV Lookup Server 1.2                    **
-// ** (c) 2016-2020 ViaThinkSoft, Daniel Marschall **
+// ** OID CSV Lookup Server 1.3                    **
+// ** (c) 2016-2024 ViaThinkSoft, Daniel Marschall **
 // **************************************************
 
 // todo: log verbosity + datetime
@@ -13,6 +13,8 @@
 #include "oid_lookup_srv.h"
 
 unordered_set<string> lines;
+
+time_t csvLoad = time(NULL);
 
 int loadfile(const string &filename) {
 	int cnt = 0;
@@ -28,6 +30,10 @@ int loadfile(const string &filename) {
 	fprintf(stdout, "Loaded %d OIDs from %s\n", cnt, filename.c_str());
 
 	return cnt;
+}
+
+int loadCSVs() {
+	return loadfile("oid_table.csv");
 }
 
 bool stringAvailable(const string &str) {
@@ -74,6 +80,12 @@ int read_from_client(int filedes) {
 		if (strcmp(buffer, "bye") == 0) {
 			fprintf(stdout, "%s:%d[%d] Client said good bye.\n", inet_ntoa(cons[filedes].clientname.sin_addr), ntohs(cons[filedes].clientname.sin_port), filedes);
 			return -1;
+		} else if (strcmp(buffer, "reload") == 0) {
+			fprintf(stdout, "%s:%d[%d] Client requested a reload.\n", inet_ntoa(cons[filedes].clientname.sin_addr), ntohs(cons[filedes].clientname.sin_port), filedes);
+			loadCSVs();
+			csvLoad = time(NULL);
+			write(filedes, "OK\n", 3);
+			return 0;
 		} else {
 			cons[filedes].queries++;
 
@@ -105,10 +117,6 @@ int fd_set_isset_count(const fd_set &my_fd_set) {
 		}
 	}
 	return cnt;
-}
-
-int loadCSVs() {
-	return loadfile("oid_table.csv");
 }
 
 void initConsArray() {
@@ -153,14 +161,13 @@ int main(void) {
 	int sock;
 	fd_set active_fd_set, read_fd_set;
 
-	fprintf(stdout, "OID CSV Lookup Server 1.2 (c)2016-2020 ViaThinkSoft\n");
+	fprintf(stdout, "OID CSV Lookup Server 1.3 (c)2016-2024 ViaThinkSoft\n");
 	fprintf(stdout, "Listening at port: %d\n", PORT);
 	fprintf(stdout, "Max connections: %d\n", FD_SETSIZE);
 
 	initConsArray();
 
 	int loadedOIDs = loadCSVs();
-	time_t csvLoad = time(NULL);
 
 	/* Create the socket and set it up to accept connections. */
 	sock = make_socket(PORT);
