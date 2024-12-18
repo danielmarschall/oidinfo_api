@@ -2,7 +2,7 @@
 
 -- Standard OID Illegality Rule Definition File
 -- by Daniel Marschall and Olivier Dubuisson
--- Revision: 7 July 2024
+-- Revision: 18 December 2024
 -- This file contains all oid-info.com rules as of 2018_09_18_illegal_oid_table.csv
 
 -- SYNTAX:
@@ -97,9 +97,9 @@
 
 -- CATEGORY: Currently "not expected" OID arc values - once the RAs are reaching a specific arc value, these limits have to be increased
 0.(10+)                      -- itu, currently max 9
-0.4.(1+)                     -- 0.4.0 is the only identified organization
+0.4.(!0)                     -- 0.4.0 is the only identified organization
 1.(4+)                       -- iso, currently max 3
-1.3.6.(2+)                   -- dod
+1.3.6.(!1)                   -- dod
 1.3.6.1.(9+)                 -- internet
 1.3.6.1.2.(3+)               -- mgmt
 1.3.6.1.2.1.(301+)           -- mib-2 (Sep 2015: max 233)
@@ -222,7 +222,8 @@
 -- CATEGORY: Not assigned (probably mistyped)
 2.16.840.1.113883.3.44.21   -- The correct OID is {joint-iso-itu-t(2) country(16) us(840) organization(1) hl7(113883) externalUseRoots(3) stmarys(4421)}
 2.16.840.1.11422            -- The correct OID is {joint-iso-itu-t(2) country(16) us(840) organization(1) 114222}
-2.16.840.1.(113526-)        -- Childs OIDs of 2.16.840.1 have a number greater than or equal to 113,527
+2.16.840.1.(0-100)          -- Child OIDs of 2.16.840.1 have a number greater than or equal to 113,527 (exception gov(101))
+2.16.840.1.(102-113526)     -- Child OIDs of 2.16.840.1 have a number greater than or equal to 113,527 (exception gov(101))
 1.3.6.1.2.1.10.10.1.1.2     -- This OID is not defined in ACC-MIB (v1) ( http://www.mibdepot.com/cgi-bin/getmib3.cgi?win=mib_a&i=1&n=ACC-MIB&r=ericsson&f=mib_txt_12_3_1_5&v=v1&t=tree#dot5Group )
 1.3.6.1.2.1.10.7.20         -- The correct OID is {iso(1) identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1) powerEthernetMIB(105)}
 1.3.6.1.2.1.10.7.300        -- The correct OID is {iso(1) member-body(2) us(840) ieee802dot3(10006) snmpmibs(300)}
