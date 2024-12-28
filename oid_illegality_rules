@@ -2,7 +2,7 @@
 
 -- Standard OID Illegality Rule Definition File
 -- by Daniel Marschall and Olivier Dubuisson
--- Revision: 2024-12-21 01:20:45
+-- Revision: 2024-12-28 00:15:29
 
 -- SYNTAX:
 -- -- comment    : comments are also allowed after a rule definition
@@ -797,6 +797,7 @@
 1.3.6.1.4.1.476.1.42.4.10.1.7.*                        -- Leaf OID.
 1.3.6.1.4.1.476.1.42.4.10.1.8.*                        -- Leaf OID.
 1.3.6.1.4.1.546.11.1.1.6.*                             -- Leaf OID.
+1.3.6.1.4.1.622.*                                      -- Leaf OID.
 1.3.6.1.4.1.696.*                                      -- Leaf OID.
 1.3.6.1.4.1.738.1                                      -- The correct OID is <a href="http://oid-info.com/get/1.3.6.1.4.1.738.10"><code>{iso(1) identified-organization(3) dod(6) internet(1) private(4) enterprise(1) 738 prvt-products(10)}</code></a>.
 1.3.6.1.4.1.738.10.6.5                                 -- The correct OID is <a href="http://oid-info.com/get/1.3.6.1.4.1.738.10.6.3"><code>{iso(1) identified-organization(3) dod(6) internet(1) private(4) enterprise(1) 738 prvt-products(10) ipSwitch(6) mpls(3)}</code></a>.
@@ -1013,7 +1014,7 @@
 1.3.6.1.4.1.37476.9000.59.*                            -- Leaf OID.
 1.3.6.1.4.1.37476.9000.138                             -- This OID has been withdrawn.
 1.3.6.1.4.1.37476.9999.*                               -- <a href="http://oid-info.com/get/1.3.6.1.4.1.37476.9999"><code>{iso(1) identified-organization(3) dod(6) internet(1) private(4) enterprise(1) 37476 example(9999)}</code></a> is an example OID, so its descendants are not expected to be described in the OID repository.
-1.3.6.1.4.1.37553.8.32488192274.*                      -- <a href="http://oid-info.com/get/1.3.6.1.4.1.37476.9999"><code>{iso(1) identified-organization(3) dod(6) internet(1) private(4) enterprise(1) 37476 example(9999)}</code></a> is an example OID, so its descendants are not expected to be described in the OID repository.
+1.3.6.1.4.1.37553.8.32488192274.*                      -- <a href="http://oid-info.com/get/1.3.6.1.4.1.37553.8.32488192274"><code>{iso(1) identified-organization(3) dod(6) internet(1) private(4) enterprise(1) 37553 weid(8) example(32488192274)}</code></a> is an example OID, so its descendants are not expected to be described in the OID repository.
 1.3.6.1.4.1.37568.2.1.5.(0-)                           -- Frozen OID.
 1.3.6.1.4.1.37568.2.1.5.(3+)                           -- Frozen OID.
 1.3.6.1.4.1.37568.2.1.5.1.*                            -- Leaf OID.
@@ -1081,7 +1082,7 @@
 1.3.6.1.4.1.58951.*                                    -- Leaf OID.
 1.3.6.1.4.1.60000.301                                  -- This OID appears in a Management Information base (MIB) module from Ethernet Direct, Inc. but the OID of this company is <a href="http://oid-info.com/get/1.3.6.1.4.1.26556"><code>{iso(1) identified-organization(3) dod(6) internet(1) private(4) enterprise(1) 26556}</code></a>.
 1.3.6.1.4.1.60938.*                                    -- Leaf OID.
-1.3.6.1.4.1.61117.9999.*                               -- <a href="http://oid-info.com/get/1.3.6.1.4.1.37476.9999"><code>{iso(1) identified-organization(3) dod(6) internet(1) private(4) enterprise(1) 37476 example(9999)}</code></a> is an example OID, so its descendants are not expected to be described in the OID repository.
+1.3.6.1.4.1.61117.9999.*                               -- <a href="http://oid-info.com/get/1.3.6.1.4.1.61117.9999"><code>{iso(1) identified-organization(3) dod(6) internet(1) private(4) enterprise(1) 61117 example(9999)}</code></a> is an example OID, so its descendants are not expected to be described in the OID repository.
 1.3.6.1.4.1.62373.*                                    -- Leaf OID.
 1.3.6.1.4.1.4294967295                                 -- According to IETF <a href="https://www.rfc-editor.org/rfc/rfc9371.html">RFC 9371</a>, private enterprise numbers (PENs) range from <code>0</code> to <code>4294967295</code> (= <code>2<sup>32</sup> - 1</code>) where values <code>0</code> and <code>4294967295</code> are reserved.
 1.3.6.1.5.(8+)                                         -- OIDs underneath <code>1.3.6.1.5</code> are not <a href="http://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml#smi-numbers-26">expected (at this point in time)</a> to have a number greater than <code>7</code>; if you think this constraint is wrong, please contact the <a href="http://oid-info.com/helper">OID repository administrator</a>.
