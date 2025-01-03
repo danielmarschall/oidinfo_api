@@ -426,10 +426,10 @@ class OIDInfoAPI {
 
 //		$out  = "<!DOCTYPE oid-database>\n\n";
 		$out  = '<?xml version="1.0" encoding="UTF-8" ?>'."\n";
-		$out .= '<oid-database xmlns="http://oid-base.com"'."\n";
+		$out .= '<oid-database xmlns="https://www.oid-base.com"'."\n";
 		$out .= '              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'."\n";
-		$out .= '              xsi:schemaLocation="http://oid-base.com '."\n";
-		$out .= '                                  http://oid-base.com/oid.xsd">'."\n";
+		$out .= '              xsi:schemaLocation="https://www.oid-base.com '."\n";
+		$out .= '                                  https://www.oid-base.com/oid.xsd">'."\n";
 		$out .= "\t<submitter>\n";
 		$out .= "\t\t<first-name>$firstName</first-name>\n";
 		$out .= "\t\t<last-name>$lastName</last-name>\n";
