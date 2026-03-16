@@ -2,7 +2,7 @@
 
 -- Standard OID Illegality Rule Definition File
 -- by Daniel Marschall and Olivier Dubuisson
--- Revision: 2026-03-14 00:17:23
+-- Revision: 2026-03-16 00:15:36
 
 -- SYNTAX:
 -- -- comment    : comments are also allowed after a rule definition

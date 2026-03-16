@@ -1,5 +1,5 @@
 // **************************************************
-// ** OID CSV Lookup Server 2.0                    **
+// ** OID CSV Lookup Server 2.0.1                  **
 // ** (c) 2016-2026 ViaThinkSoft, Daniel Marschall **
 // **************************************************
 
@@ -36,7 +36,6 @@
 #define PORT    49500
 #define MAXMSG  512
 
-#define MAX_CONNECTIONS 100
 #define CONNECTION_TIMEOUT 60
 #define RATE_LIMIT_QUERIES 1000000
 
@@ -45,6 +44,7 @@
 
 using namespace std;
 
+int sock;
 time_t csvLoad = time(NULL);
 
 // --- Code for hot-swapping data structures
@@ -140,7 +140,7 @@ int read_from_client(int filedes) {
 	);
 
 	if (nbytes <= 0)
-		return -1;
+		return -2;
 
 	cons[filedes].inbuf_len = len + nbytes;
 	cons[filedes].inbuf[cons[filedes].inbuf_len] = '\0';
@@ -159,7 +159,7 @@ int read_from_client(int filedes) {
 
 	if (strcmp(cons[filedes].inbuf, "bye") == 0) {
 		fprintf(stdout, "%s:%d[%d] Client said good bye.\n", ip, port, filedes);
-		return -1;
+		return -3;
 	} else if (strcmp(cons[filedes].inbuf, "reload") == 0) {
 		sockaddr *sa = (sockaddr*)&cons[filedes].clientname;
 
@@ -184,12 +184,12 @@ int read_from_client(int filedes) {
 		if (!is_local) {
 			fprintf(stdout, "%s:%d[%d] Reload rejected (not localhost)\n", ip, port, filedes);
 			write(filedes, "FORBIDDEN\n", strlen("FORBIDDEN\n"));
-			return -1;
+			return -4;
 		} else {
 			fprintf(stdout, "%s:%d[%d] Client requested a reload.\n", ip, port, filedes);
 			loadCSVs();
 			csvLoad = time(NULL);
-			if (write(filedes, "OK\n", 3) < 0) return -1;
+			if (write(filedes, "OK\n", 3) < 0) return -5;
 
 			// Nach Verarbeitung: Rest nach vorne schieben
 			int processed = (nl - cons[filedes].inbuf) + 1; // +1 für das \n
@@ -200,29 +200,69 @@ int read_from_client(int filedes) {
 
 			return 0;
 		}
+	} else if (strcmp(cons[filedes].inbuf, "terminate") == 0) {
+		sockaddr *sa = (sockaddr*)&cons[filedes].clientname;
+
+		bool is_local = false;
+		if (sa->sa_family == AF_INET) {
+			sockaddr_in *v4 = (sockaddr_in*)sa;
+			uint32_t addr = ntohl(v4->sin_addr.s_addr);
+			is_local = ((addr & 0xFF000000) == 0x7F000000); // 127.0.0.0/8
+		} else if (sa->sa_family == AF_INET6) {
+			sockaddr_in6 *v6 = (sockaddr_in6*)sa;
+			if (IN6_IS_ADDR_LOOPBACK(&v6->sin6_addr)) {
+				is_local = true; // ::1
+			} else if (IN6_IS_ADDR_V4MAPPED(&v6->sin6_addr)) {
+				uint32_t ipv4;
+				memcpy(&ipv4, &v6->sin6_addr.s6_addr[12], 4);
+				ipv4 = ntohl(ipv4);
+				if ((ipv4 & 0xFF000000) == 0x7F000000)
+					is_local = true;
+			}
+		}
+
+		if (!is_local) {
+			fprintf(stdout, "%s:%d[%d] Termination rejected (not localhost)\n", ip, port, filedes);
+			write(filedes, "FORBIDDEN\n", strlen("FORBIDDEN\n"));
+			return -6;
+		} else {
+			fprintf(stdout, "%s:%d[%d] Client requested termination of service.\n", ip, port, filedes);
+			loadCSVs();
+			csvLoad = time(NULL);
+			if (write(filedes, "OK\n", 3) < 0) return -7;
+
+			// Nach Verarbeitung: Rest nach vorne schieben
+			int processed = (nl - cons[filedes].inbuf) + 1; // +1 für das \n
+			int remaining = cons[filedes].inbuf_len - processed;
+			if (remaining > 0)
+			memmove(cons[filedes].inbuf, nl + 1, remaining);
+			cons[filedes].inbuf_len = remaining;
+
+			return -999; // exits program
+		}
 	} else {
 		cons[filedes].queries++;
 
 		if (cons[filedes].queries > RATE_LIMIT_QUERIES) {
 			fprintf(stdout, "%s:%d[%d] Client reached rate limit (%d).\n", ip, port, filedes, RATE_LIMIT_QUERIES);
-			if (write(filedes, "RATE LIMIT REACHED\n", strlen("RATE LIMIT REACHED\n")) < 0) return -1;
-			return -1;
+			if (write(filedes, "RATE LIMIT REACHED\n", strlen("RATE LIMIT REACHED\n")) < 0) return -8;
+			return -9;
 		}
 
 		for (uint i=0; i<sizeof(cons[filedes].inbuf); ++i) {
 			if (cons[filedes].inbuf[i] == 0) break;
 			if (!((cons[filedes].inbuf[i] >= '0') && (cons[filedes].inbuf[i] <= '9')) && !(cons[filedes].inbuf[i] == '.')) {
 				fprintf(stdout, "%s:%d[%d] Client sent an invalid request.\n", ip, port, filedes);
-				return -1;
+				return -10;
 			}
 		}
 
-		// fprintf(stdout, "%s:%d[%d] Query #%d: %s\n", ip, port, filedes, cons[filedes].queries, cons[filedes].inbuf);
+		fprintf(stdout, "%s:%d[%d] Query #%d: %s\n", ip, port, filedes, cons[filedes].queries, cons[filedes].inbuf);
 
 		if (stringAvailable(cons[filedes].inbuf)) {
-			if (write(filedes, "1\n", 2) < 0) return -1;
+			if (write(filedes, "1\n", 2) < 0) return -11;
 		} else {
-			if (write(filedes, "0\n", 2) < 0) return -1;
+			if (write(filedes, "0\n", 2) < 0) return -12;
 		}
 
 		// Nach Verarbeitung: Rest nach vorne schieben
@@ -257,21 +297,24 @@ void initConsArray() {
 }
 
 int make_socket(uint16_t port) {
-	int sock;
-	//struct sockaddr_in name;
-
 	/* Create the socket. */
-	sock = socket(AF_INET6, SOCK_STREAM, 0);
+	int sock = socket(AF_INET6, SOCK_STREAM, 0);
 	if (sock < 0) {
 		perror("socket");
 		exit(EXIT_FAILURE);
 	}
 
-	int enable = 1;
-	if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
+	/* Apply settings */
+	int opt = 1;
+	if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
 		fprintf(stderr, "ERROR: setsockopt(SO_REUSEADDR) failed");
 		exit(EXIT_FAILURE);
 	}
+
+	//if (setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)) < 0) {
+	//	fprintf(stderr, "ERROR: setsockopt(SO_REUSEPORT) failed");
+	//	exit(EXIT_FAILURE);
+	//}
 
 	int off = 0;
 	if (setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, &off, sizeof(off)) < 0) {
@@ -303,19 +346,27 @@ int make_socket(uint16_t port) {
 	return sock;
 }
 
+void handle_sigint(int sig) {
+	printf("Shutting down...\n");
+	close(sock);
+	exit(0);
+}
+
 // --- Main method
 
 int main(void) {
 //	extern int make_socket(uint16_t port);
-	int sock;
 	fd_set active_fd_set, read_fd_set;
 
-	fprintf(stdout, "OID CSV Lookup Server 2.0 (c)2016-2026 ViaThinkSoft\n");
+	fprintf(stdout, "OID CSV Lookup Server 2.0.1 (c)2016-2026 ViaThinkSoft\n");
 	fprintf(stdout, "Listening at port: %d\n", PORT);
 	fprintf(stdout, "Max connections: %d\n", FD_SETSIZE);
 
 	// write() auf eine geschlossene Connection schickt SIGPIPE -> Prozess stirbt.
 	signal(SIGPIPE, SIG_IGN);
+
+	// allow ctrl+c
+	signal(SIGINT, handle_sigint);
 
 	initConsArray();
 
@@ -386,7 +437,7 @@ int main(void) {
 							}
 						}
 
-						if (fd_set_isset_count(active_fd_set)-1 > MAX_CONNECTIONS) { // -1 is because we need to exclude the listening socket (i=sock) which is not a connected client
+						if (fd_set_isset_count(active_fd_set)-1 > FD_SETSIZE) { // -1 is because we need to exclude the listening socket (i=sock) which is not a connected client
 							fprintf(stderr, "%s:%d[%d] Rejected because too many connections are open\n", ip, port, new_fd);
 							close(new_fd);
 							FD_CLR(new_fd, &active_fd_set);
@@ -400,12 +451,15 @@ int main(void) {
 					} else {
 						/* Data arriving on an already-connected socket. */
 						cons[i].last_activity = time(NULL);
-						if (read_from_client(i) < 0) {
+						int ret = read_from_client(i);
+						if (ret == -999) {
+							break;
+						} else if (ret < 0) {
 							char ip[INET6_ADDRSTRLEN];
 							uint16_t port;
 							addr_to_string((sockaddr*)&cons[i].clientname, ip, sizeof(ip), &port);
 
-							fprintf(stdout, "%s:%d[i=%d] Connection closed after %d queries in %lu seconds.\n", ip, port, i, cons[i].queries, time(NULL)-cons[i].connect_ts);
+							fprintf(stdout, "%s:%d[%d] Connection closed after %d queries in %lu seconds.\n", ip, port, i, cons[i].queries, time(NULL)-cons[i].connect_ts);
 							close(i);
 							FD_CLR(i, &active_fd_set);
 							continue;
@@ -430,8 +484,7 @@ int main(void) {
 					uint16_t port;
 					addr_to_string((sockaddr*)&cons[i].clientname, ip, sizeof(ip), &port);
 
-					fprintf(stdout, "%s:%d[%d] Connection timeout.\n", ip, port, i);
-					fprintf(stdout, "%s:%d[%d] Connection closed after %d queries in %lu seconds.\n", ip, port, i, cons[i].queries, time(NULL)-cons[i].connect_ts);
+					fprintf(stdout, "%s:%d[%d] Connection closed after %d queries in %lu seconds due to timeout.\n", ip, port, i, cons[i].queries, time(NULL)-cons[i].connect_ts);
 					close(i);
 					FD_CLR(i, &active_fd_set);
 				}

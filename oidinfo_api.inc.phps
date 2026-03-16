@@ -2,8 +2,8 @@
 
 /*
  * OID-base.com API for PHP
- * Copyright 2019 - 2025 Daniel Marschall, ViaThinkSoft
- * Version 2025-03-26
+ * Copyright 2019 - 2026 Daniel Marschall, ViaThinkSoft
+ * Version 2026-03-16
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1063,7 +1063,7 @@ class OIDSimplePingProvider implements IOIDSimplePingProvider {
 	}
 
 	protected function spp_reader_avail($oid, $failcount=0) {
-		$in = "$oid\n\0"; // PHP's socket_send() does not send a trailing \n . There needs to be something after the \n ... :(
+		$in = "$oid\n";
 
 		if ($failcount >= self::SPP_MAX_CONNECTION_ATTEMPTS) {
 			$msg = "Query $oid: CONNECTION TO SIMPLE PING PROVIDER FAILED!\n";
@@ -1076,6 +1076,8 @@ class OIDSimplePingProvider implements IOIDSimplePingProvider {
 			$this->spp_reader_init();
 		}
 
+		socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, ["sec"=>5,"usec"=>0]);
+
 		$s = @socket_send($this->socket, $in, strlen($in), 0);
 		if ($s != strlen($in)) {
 			// echo "Query $oid: Sending failed\n";
@@ -1084,7 +1086,7 @@ class OIDSimplePingProvider implements IOIDSimplePingProvider {
 			return $this->spp_reader_avail($oid, $failcount+1);
 		}
 
-		$out = @socket_read($this->socket, 2048);
+		$out = @socket_read($this->socket, 2048, PHP_NORMAL_READ);
 		if (trim($out) == '1') {
 			return true;
 		} else if (trim($out) == '0') {
