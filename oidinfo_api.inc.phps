@@ -3,7 +3,7 @@
 /*
  * OID-base.com API for PHP
  * Copyright 2019 - 2026 Daniel Marschall, ViaThinkSoft
- * Version 2026-03-16
+ * Version 2026-03-26
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -556,6 +556,9 @@ class OIDInfoAPI {
 
 		$elements['description'] = $this->correctDesc($elements['description'], $params, self::OIDINFO_CORRECT_DESC_DISALLOW_ENDING_DOT, true);
 		$elements['information'] = $this->correctDesc($elements['information'], $params, self::OIDINFO_CORRECT_DESC_ENFORCE_ENDING_DOT, true);
+
+		// Request by O.D. 26 March 2026
+		$elements['description'] = trim(preg_replace('@<\s*br\s*/{0,1}\s*>@isU', ' ', $elements['description']));
 
 		// Request by O.D. 26 August 2019
 		$elements['description'] = trim($elements['description']);

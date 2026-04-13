@@ -109,14 +109,16 @@ con_descriptor cons[FD_SETSIZE];
 const char* addr_to_string(const sockaddr *sa, char *buf, size_t len, uint16_t *port) {
 	if (sa->sa_family == AF_INET) {
 		const sockaddr_in *v4 = (const sockaddr_in*)sa;
-		inet_ntop(AF_INET, &v4->sin_addr, buf, len);
+		if (!inet_ntop(AF_INET, &v4->sin_addr, buf, len))
+			snprintf(buf, len, "?");
 		if (port) *port = ntohs(v4->sin_port);
 	} else if (sa->sa_family == AF_INET6) {
 		const sockaddr_in6 *v6 = (const sockaddr_in6*)sa;
-		inet_ntop(AF_INET6, &v6->sin6_addr, buf, len);
+		if (!inet_ntop(AF_INET6, &v6->sin6_addr, buf, len))
+			snprintf(buf, len, "?");
 		if (port) *port = ntohs(v6->sin6_port);
 	} else {
-		strncpy(buf, "?", len);
+		snprintf(buf, len, "?");
 		if (port) *port = 0;
 	}
 
